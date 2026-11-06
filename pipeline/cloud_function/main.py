@@ -49,8 +49,9 @@ def load_users(gcs_uri: str):
     print(f"Successfully loaded {load_job.output_rows} rows into {table_ref}")
 
 def load_users_groups_roles(gcs_uri: str):
-    """Full atomic overwrite for User Groups & Roles bridge table."""
-    table_ref = f"{PROJECT_ID}.{DATASET_ID}.users_groups_roles"
+    """Full atomic overwrite for User Groups & Roles bridge table, filtering out auto-generated self-service roles."""
+    staging_table = f"{PROJECT_ID}.{DATASET_ID}.users_groups_roles_staging"
+    target_table = f"{PROJECT_ID}.{DATASET_ID}.users_groups_roles"
     job_config = bigquery.LoadJobConfig(
         schema=[
             bigquery.SchemaField("user_id", "INT64"),
@@ -64,9 +65,26 @@ def load_users_groups_roles(gcs_uri: str):
         source_format=bigquery.SourceFormat.CSV,
         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
     )
-    load_job = bq_client.load_table_from_uri(gcs_uri, table_ref, job_config=job_config)
+    load_job = bq_client.load_table_from_uri(gcs_uri, staging_table, job_config=job_config)
     load_job.result()
-    print(f"Successfully loaded {load_job.output_rows} rows into {table_ref}")
+    print(f"Staged {load_job.output_rows} rows into {staging_table}")
+
+    # Atomic overwrite into target table filtering out auto-generated self_service roles
+    filter_query = f"""
+    CREATE OR REPLACE TABLE `{target_table}` AS
+    SELECT DISTINCT
+        user_id,
+        user_name,
+        role_id,
+        role_name,
+        group_id,
+        group_name
+    FROM `{staging_table}`
+    WHERE role_name IS NULL OR role_name NOT LIKE 'self_service__%'
+    """
+    query_job = bq_client.query(filter_query)
+    query_job.result()
+    print(f"Successfully filtered and populated {target_table}")
 
 def load_history_incremental(gcs_uri: str):
     """Loads history to staging and performs an idempotent MERGE into the partitioned history table."""
