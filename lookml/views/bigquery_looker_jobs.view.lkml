@@ -434,7 +434,7 @@ view: bigquery_looker_jobs {
             WHEN query_source = 'pdt_build' THEN 'Looker PDT Background Process'
             WHEN raw_user_name IS NOT NULL THEN raw_user_name
             WHEN is_looker_query THEN 'Looker System / Scheduled'
-            ELSE CONCAT('Direct BQ (', bq_executing_account, ')')
+            ELSE NULL
           END AS looker_user_name,
 
           -- Unified Asset Label across Dashboards, Looks, Explores, and PDTs
