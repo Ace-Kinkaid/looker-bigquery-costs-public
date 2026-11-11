@@ -434,7 +434,7 @@ view: bigquery_looker_jobs {
             WHEN query_source = 'pdt_build' THEN 'Looker PDT Background Process'
             WHEN raw_user_name IS NOT NULL THEN raw_user_name
             WHEN is_looker_query THEN 'Looker System / Scheduled'
-            ELSE NULL
+            ELSE 'Direct BQ'
           END AS looker_user_name,
 
           -- Unified Asset Label across Dashboards, Looks, Explores, and PDTs
@@ -613,8 +613,16 @@ view: bigquery_looker_jobs {
     type: string
     sql: ${TABLE}.looker_user_name ;;
     label: "User Name"
-    description: "Name of the Looker user, PDT background process, or direct BigQuery service account executing the job"
+    description: "Name of the Looker user, PDT background process, or system process executing the job, or 'Direct BQ' for non-Looker jobs"
+    suggest_persist_for: "0 seconds"
+    suggest_dimension: bigquery_looker_jobs.looker_only_user_name
     drill_fields: [content_name, dashboard_title, look_title, explore_name, query_time_date, total_cost]
+  }
+
+  dimension: looker_only_user_name {
+    hidden: yes
+    type: string
+    sql: CASE WHEN ${TABLE}.is_looker_query THEN ${TABLE}.looker_user_name ELSE NULL END ;;
   }
 
   dimension: looker_user_email {
