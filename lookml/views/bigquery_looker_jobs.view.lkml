@@ -624,7 +624,7 @@ view: bigquery_looker_jobs {
     type: string
     sql: CASE
       WHEN ${TABLE}.is_looker_query
-        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled')
+        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled', 'Conversational Analytics User', 'Conversational Analytics')
         AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%')
       THEN ${TABLE}.looker_user_name
       ELSE NULL
@@ -849,7 +849,7 @@ view: bigquery_looker_jobs {
     type: count_distinct
     sql: CASE
       WHEN ${TABLE}.is_looker_query
-        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled')
+        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled', 'Conversational Analytics User', 'Conversational Analytics')
         AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%')
       THEN ${TABLE}.looker_user_name
       ELSE NULL

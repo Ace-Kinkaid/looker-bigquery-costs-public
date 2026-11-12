@@ -374,7 +374,7 @@
         bigquery_looker_jobs.total_cost
       ]
       filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 5
       show_view_names: false
@@ -457,7 +457,7 @@
         bigquery_looker_jobs.average_cost_per_query
       ]
       filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 25
       show_view_names: false
@@ -499,7 +499,7 @@
       ]
       pivots: [bigquery_looker_jobs.query_source]
       filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc 0]
       limit: 15
       stacking: normal
