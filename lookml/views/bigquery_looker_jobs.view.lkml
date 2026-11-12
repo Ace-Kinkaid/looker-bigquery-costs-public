@@ -112,7 +112,7 @@ view: bigquery_looker_jobs {
           -- Extract legacy comment format: -- Looker Query Context (User ID: 123, ...)
           REGEXP_EXTRACT(query, r"(?s)-- Looker Query Context \((.*?)\)") AS looker_legacy_context
         FROM
-          `@{GCP_PROJECT_ID}`.`region-@{BQ_REGION}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+          `looker-core-4cjg`.`region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
         WHERE
           job_type = 'QUERY'
           AND creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
@@ -388,7 +388,7 @@ view: bigquery_looker_jobs {
             ELSE e.base_query_source
           END AS query_source
         FROM extracted_jobs e
-        LEFT JOIN `@{GCP_PROJECT_ID}`.@{BQ_DATASET_NAME}.history h
+        LEFT JOIN `looker-core-4cjg`.looker_bq_costs.history h
           ON e.history_slug IS NOT NULL
           AND e.history_slug = h.history_slug
       ),
@@ -411,7 +411,7 @@ view: bigquery_looker_jobs {
             IF(hm.looker_user_id IS NOT NULL, CONCAT('user_', CAST(hm.looker_user_id AS STRING), '@looker.internal'), NULL)
           ) AS raw_user_email
         FROM history_matched_jobs hm
-        LEFT JOIN `@{GCP_PROJECT_ID}`.@{BQ_DATASET_NAME}.users u
+        LEFT JOIN `looker-core-4cjg`.looker_bq_costs.users u
           ON hm.looker_user_id = u.user_id
       ),
 
@@ -467,7 +467,7 @@ view: bigquery_looker_jobs {
   # =================================================================================================
   parameter: selected_project {
     type: string
-    default_value: "@{GCP_PROJECT_ID}"
+    default_value: "looker-core-4cjg"
     label: "Google Cloud Project ID"
     description: "Target GCP Project ID for BigQuery Information Schema analysis"
   }
@@ -622,7 +622,13 @@ view: bigquery_looker_jobs {
   dimension: looker_only_user_name {
     hidden: yes
     type: string
-    sql: CASE WHEN ${TABLE}.is_looker_query AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%') THEN ${TABLE}.looker_user_name ELSE NULL END ;;
+    sql: CASE
+      WHEN ${TABLE}.is_looker_query
+        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled')
+        AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%')
+      THEN ${TABLE}.looker_user_name
+      ELSE NULL
+    END ;;
   }
 
   dimension: looker_user_email {
@@ -841,9 +847,15 @@ view: bigquery_looker_jobs {
 
   measure: active_users_count {
     type: count_distinct
-    sql: ${TABLE}.looker_user_name ;;
+    sql: CASE
+      WHEN ${TABLE}.is_looker_query
+        AND ${TABLE}.looker_user_name NOT IN ('Looker PDT Background Process', 'Looker System / Scheduled')
+        AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%')
+      THEN ${TABLE}.looker_user_name
+      ELSE NULL
+    END ;;
     label: "Active Querying Users"
-    description: "Count of distinct active users or service accounts executing queries"
+    description: "Count of distinct active Looker users executing queries"
     drill_fields: [looker_user_name, total_cost, query_count]
   }
 

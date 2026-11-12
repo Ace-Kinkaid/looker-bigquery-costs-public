@@ -32,7 +32,7 @@
     - name: project_id
       title: "GCP Project ID"
       type: field_filter
-      default_value: "YOUR_PROJECT_ID"
+      default_value: "looker-core-4cjg"
       allow_multiple_values: false
       required: true
       ui_config:
@@ -369,11 +369,12 @@
       type: looker_grid
       fields: [
         bigquery_looker_jobs.looker_user_name,
-        looker_users_groups_roles.group_name,
         bigquery_looker_jobs.query_count,
         bigquery_looker_jobs.total_terabytes_billed,
         bigquery_looker_jobs.total_cost
       ]
+      filters:
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 5
       show_view_names: false
@@ -450,13 +451,13 @@
       fields: [
         bigquery_looker_jobs.looker_user_name,
         bigquery_looker_jobs.looker_user_email,
-        looker_users_groups_roles.group_name,
-        looker_users_groups_roles.role_name,
         bigquery_looker_jobs.query_count,
         bigquery_looker_jobs.total_terabytes_billed,
         bigquery_looker_jobs.total_cost,
         bigquery_looker_jobs.average_cost_per_query
       ]
+      filters:
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 25
       show_view_names: false
@@ -497,6 +498,8 @@
         bigquery_looker_jobs.total_cost
       ]
       pivots: [bigquery_looker_jobs.query_source]
+      filters:
+        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ"
       sorts: [bigquery_looker_jobs.total_cost desc 0]
       limit: 15
       stacking: normal
