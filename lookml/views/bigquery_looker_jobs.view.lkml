@@ -9,11 +9,11 @@
 #
 # Datagroup & Persistence:
 #   - Refresh Trigger: bq_cost_attribution_daily_6am (refreshes daily at 6:00 AM ET)
-#   - Partition Key: creation_date (90-day retention window)
+#   - Partition Key: creation_date (180-day retention window)
 #   - Cluster Keys: history_slug, job_id, looker_user_name
 #
 # Architecture & CTE Data Flow:
-#   1. raw_jobs: Scans INFORMATION_SCHEMA.JOBS_BY_PROJECT for all QUERY jobs over the last 90 days.
+#   1. raw_jobs: Scans INFORMATION_SCHEMA.JOBS_BY_PROJECT for all QUERY jobs over the last 180 days.
 #      Extracts raw regex patterns for JSON context comments (-- Looker Query Context {...}),
 #      legacy context comments, and native BigQuery job labels.
 #   2. extracted_jobs: Parses structured metadata tokens (history_slug, pdt_name, pdt_model_name,
@@ -86,7 +86,7 @@ view: bigquery_looker_jobs {
     cluster_keys: ["history_slug", "job_id", "looker_user_name"]
     sql:
       WITH raw_jobs AS (
-        -- Step 1: Scan INFORMATION_SCHEMA.JOBS_BY_PROJECT for QUERY jobs over the last 90 days
+        -- Step 1: Scan INFORMATION_SCHEMA.JOBS_BY_PROJECT for QUERY jobs over the last 180 days
         SELECT
           job_id,
           project_id,
@@ -115,7 +115,7 @@ view: bigquery_looker_jobs {
           `looker-core-4cjg`.`region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
         WHERE
           job_type = 'QUERY'
-          AND creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
+          AND creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 180 DAY)
       ),
 
       extracted_jobs AS (
