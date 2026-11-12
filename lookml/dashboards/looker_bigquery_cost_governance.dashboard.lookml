@@ -301,9 +301,9 @@
       inner_radius: 50
       series_colors:
         "Business Teams": "#1A73E8"
-        "Shared Infrastructure / Looker PDTs": "#34A853"
+        "Looker PDTs": "#34A853"
         "Conversational Analytics": "#9334E6"
-        "Shared / Looker System": "#FBBC04"
+        "Looker System": "#FBBC04"
         "Non-Looker / Direct BigQuery": "#EA4335"
       show_view_names: false
       listen:

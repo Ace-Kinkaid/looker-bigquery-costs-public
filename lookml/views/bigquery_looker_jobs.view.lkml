@@ -72,9 +72,9 @@
 #
 # 4. WORKLOAD CATEGORY ALLOCATION (dimension: cost_center)
 #    - Conversational Analytics: BigQuery consumption driven by Conversational Analytics and Gemini in Looker.
-#    - Shared Infrastructure / Looker PDTs: All PDT background rebuilds and scratch table management.
+#    - Looker PDTs: All PDT background rebuilds and scratch table management.
 #    - Business Teams: Queries initiated by identified Looker business users (dashboards, looks, explores).
-#    - Shared / Looker System: Automated Looker background tasks without direct named user attribution.
+#    - Looker System: Automated Looker background tasks without direct named user attribution.
 #    - Non-Looker / Direct BigQuery: Queries executed outside of the Looker platform.
 #
 # =================================================================================================
@@ -419,12 +419,12 @@ view: bigquery_looker_jobs {
         -- Step 5: Assign Cost Center, Unified Asset Content Name, and Effective Billed Bytes
         SELECT
           *,
-          -- Shared Cost Center Logic for Conversational Analytics, PDTs, Business Users, and System Tasks
+          -- Workload Category Allocation for Conversational Analytics, PDTs, Business Users, and System Tasks
           CASE
             WHEN query_source = 'conversational_analytics' THEN 'Conversational Analytics'
-            WHEN query_source = 'pdt_build' THEN 'Shared Infrastructure / Looker PDTs'
+            WHEN query_source = 'pdt_build' THEN 'Looker PDTs'
             WHEN is_looker_query AND raw_user_name IS NOT NULL THEN 'Business Teams'
-            WHEN is_looker_query THEN 'Shared / Looker System'
+            WHEN is_looker_query THEN 'Looker System'
             ELSE 'Non-Looker / Direct BigQuery'
           END AS cost_center,
 
@@ -542,7 +542,7 @@ view: bigquery_looker_jobs {
     type: string
     sql: ${TABLE}.cost_center ;;
     label: "Workload Category"
-    description: "Allocated workload category: Conversational Analytics, Business Teams, Shared Infrastructure / Looker PDTs, Shared / Looker System, or Non-Looker / Direct BigQuery"
+    description: "Allocated workload category: Conversational Analytics, Business Teams, Looker PDTs, Looker System, or Non-Looker / Direct BigQuery"
     link: {
       label: "{% if value == 'Conversational Analytics' %}Open Conversational Analytics System Activity Dashboard{% else %}Explore Workload Category Queries{% endif %}"
       url: "{% if value == 'Conversational Analytics' %}/dashboards/system__activity::conversational_analytics{% else %}/explore/bq_cost_attribution/looker_cost_analytics?fields=bigquery_looker_jobs.job_id,bigquery_looker_jobs.looker_user_name,bigquery_looker_jobs.content_name,bigquery_looker_jobs.total_cost&f[bigquery_looker_jobs.cost_center]={{ value | encode_url }}{% endif %}"
