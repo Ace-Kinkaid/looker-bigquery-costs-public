@@ -348,6 +348,15 @@
       limit: 5
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
+        bigquery_looker_jobs.cache_hit_rate:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -379,6 +388,13 @@
       limit: 5
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -462,6 +478,15 @@
       limit: 25
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
+        bigquery_looker_jobs.average_cost_per_query:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -560,6 +585,17 @@
       limit: 20
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.cache_hit_rate:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
+        bigquery_looker_jobs.average_cost_per_query:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -602,6 +638,15 @@
       limit: 20
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
+        bigquery_looker_jobs.cache_hit_rate:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -634,6 +679,13 @@
       limit: 20
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.runtime_seconds:
+          is_active: false
+        bigquery_looker_jobs.total_gigabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -770,6 +822,15 @@
       limit: 25
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_gigabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
+        bigquery_looker_jobs.avg_runtime_seconds:
+          is_active: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -808,6 +869,13 @@
       sorts: [bigquery_looker_jobs.total_cost desc]
       show_view_names: false
       show_row_numbers: true
+      series_cell_visualizations:
+        bigquery_looker_jobs.query_count:
+          is_active: false
+        bigquery_looker_jobs.total_terabytes_billed:
+          is_active: false
+        bigquery_looker_jobs.total_cost:
+          is_active: false
       limit: 25
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
