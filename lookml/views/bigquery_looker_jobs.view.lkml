@@ -70,7 +70,7 @@
 #    - Priority 8: External Service Accounts (External Data Pipeline / Pipeline: <service_account_prefix>)
 #    - Priority 9: Direct BigQuery Console (Direct BigQuery Console / Direct User SQL (<user_email>))
 #
-# 4. COST CENTER ALLOCATION (dimension: cost_center)
+# 4. WORKLOAD CATEGORY ALLOCATION (dimension: cost_center)
 #    - Conversational Analytics: BigQuery consumption driven by Conversational Analytics and Gemini in Looker.
 #    - Shared Infrastructure / Looker PDTs: All PDT background rebuilds and scratch table management.
 #    - Business Teams: Queries initiated by identified Looker business users (dashboards, looks, explores).
@@ -541,10 +541,10 @@ view: bigquery_looker_jobs {
   dimension: cost_center {
     type: string
     sql: ${TABLE}.cost_center ;;
-    label: "Cost Center"
-    description: "Allocated cost center: Conversational Analytics, Business Teams, Shared Infrastructure / Looker PDTs, Shared / Looker System, or Non-Looker / Direct BigQuery"
+    label: "Workload Category"
+    description: "Allocated workload category: Conversational Analytics, Business Teams, Shared Infrastructure / Looker PDTs, Shared / Looker System, or Non-Looker / Direct BigQuery"
     link: {
-      label: "{% if value == 'Conversational Analytics' %}Open Conversational Analytics System Activity Dashboard{% else %}Explore Cost Center Queries{% endif %}"
+      label: "{% if value == 'Conversational Analytics' %}Open Conversational Analytics System Activity Dashboard{% else %}Explore Workload Category Queries{% endif %}"
       url: "{% if value == 'Conversational Analytics' %}/dashboards/system__activity::conversational_analytics{% else %}/explore/bq_cost_attribution/looker_cost_analytics?fields=bigquery_looker_jobs.job_id,bigquery_looker_jobs.looker_user_name,bigquery_looker_jobs.content_name,bigquery_looker_jobs.total_cost&f[bigquery_looker_jobs.cost_center]={{ value | encode_url }}{% endif %}"
       icon_url: "{% if value == 'Conversational Analytics' %}https://cloud.google.com/favicon.ico{% else %}https://looker.com/favicon.ico{% endif %}"
     }
@@ -622,7 +622,7 @@ view: bigquery_looker_jobs {
   dimension: looker_only_user_name {
     hidden: yes
     type: string
-    sql: CASE WHEN ${TABLE}.is_looker_query THEN ${TABLE}.looker_user_name ELSE NULL END ;;
+    sql: CASE WHEN ${TABLE}.is_looker_query AND NOT (${TABLE}.looker_user_name LIKE 'Direct BQ%') THEN ${TABLE}.looker_user_name ELSE NULL END ;;
   }
 
   dimension: looker_user_email {

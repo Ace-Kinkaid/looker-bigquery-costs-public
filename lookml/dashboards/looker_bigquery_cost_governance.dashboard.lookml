@@ -28,18 +28,6 @@
       explore: looker_cost_analytics
       field: bigquery_looker_jobs.query_time_date
 
-    - name: is_looker_query
-      title: "Is Looker Query"
-      type: field_filter
-      default_value: ""
-      allow_multiple_values: true
-      required: false
-      ui_config:
-        type: button_group
-        display: inline
-      model: bq_cost_attribution
-      explore: looker_cost_analytics
-      field: bigquery_looker_jobs.is_looker_query
 
     - name: project_id
       title: "GCP Project ID"
@@ -55,7 +43,7 @@
       field: bigquery_looker_jobs.selected_project
 
     - name: cost_center
-      title: "Cost Center"
+      title: "Workload Category"
       type: field_filter
       default_value: ""
       allow_multiple_values: true
@@ -144,7 +132,6 @@
       custom_color: "#1A73E8"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -166,7 +153,6 @@
       custom_color: "#188038"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -188,7 +174,6 @@
       custom_color: "#F9AB00"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -210,7 +195,6 @@
       custom_color: "#34A853"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -232,7 +216,6 @@
       custom_color: "#9334E6"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -248,7 +231,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 📊 Spend Velocity & Cost Center Distribution\nAnalyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
+      body_text: "### 📊 Spend Velocity & Workload Distribution\nAnalyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
       row: 5
       col: 0
       width: 24
@@ -295,7 +278,6 @@
       show_view_names: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -309,7 +291,7 @@
 
     - name: cost_center_donut
       tab_name: executive_overview
-      title: "Spend by Cost Center"
+      title: "Spend by Workload Category"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_pie
@@ -326,7 +308,6 @@
       show_view_names: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -369,7 +350,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -400,7 +380,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -451,7 +430,6 @@
       show_view_names: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -485,7 +463,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -526,7 +503,6 @@
       show_view_names: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -583,7 +559,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -626,7 +601,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -659,7 +633,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         looker_user: bigquery_looker_jobs.looker_user_name
         user_group: looker_users_groups_roles.group_name
@@ -697,7 +670,6 @@
         bigquery_looker_jobs.query_source: "pdt_build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 2
@@ -717,7 +689,6 @@
         bigquery_looker_jobs.query_source: "pdt_build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
       row: 2
       col: 8
@@ -736,7 +707,6 @@
         bigquery_looker_jobs.query_source: "pdt_build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 2
@@ -771,7 +741,6 @@
       show_view_names: false
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 7
@@ -800,7 +769,6 @@
       show_row_numbers: true
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 7
@@ -840,7 +808,6 @@
       limit: 25
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
-        is_looker_query: bigquery_looker_jobs.is_looker_query
         project_id: bigquery_looker_jobs.selected_project
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 17
