@@ -488,9 +488,10 @@ view: bigquery_looker_jobs {
     sql: ${TABLE}.job_id ;;
     label: "BigQuery Job ID"
     description: "Unique BigQuery execution Job ID with direct clickable link to the Google Cloud BigQuery Console"
+    html: <a href="https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}looker-core-4cjg{% endif %}&j=bq:US:{{ value }}&page=queryhistory" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: underline;">{{ value }}</a> ;;
     link: {
       label: "View in Google Cloud BigQuery Console"
-      url: "https://console.cloud.google.com/bigquery?project={{ bigquery_looker_jobs.project_id._value }}&j=bq:US:{{ value }}&page=queryhistory"
+      url: "https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}looker-core-4cjg{% endif %}&j=bq:US:{{ value }}&page=queryhistory"
       icon_url: "https://cloud.google.com/favicon.ico"
     }
   }
@@ -729,9 +730,21 @@ view: bigquery_looker_jobs {
 
   dimension: query_source {
     type: string
-    sql: ${TABLE}.query_source ;;
+    sql: CASE ${TABLE}.query_source
+      WHEN 'conversational_analytics' THEN 'Conversational Analytics'
+      WHEN 'dashboard' THEN 'Dashboard'
+      WHEN 'look' THEN 'Look'
+      WHEN 'explore_adhoc' THEN 'Explore adhoc'
+      WHEN 'pdt_build' THEN 'PDT Build'
+      WHEN 'scheduled_task' THEN 'Scheduled Task'
+      WHEN 'alert' THEN 'Alert'
+      WHEN 'sql_runner' THEN 'SQL Runner'
+      WHEN 'api' THEN 'API'
+      WHEN 'direct_bigquery' THEN 'Direct BQ'
+      ELSE INITCAP(REPLACE(${TABLE}.query_source, '_', ' '))
+    END ;;
     label: "Query Source"
-    description: "Granular origin: conversational_analytics, dashboard, look, explore_adhoc, pdt_build, scheduled_task, alert, sql_runner, api, direct_bigquery"
+    description: "Granular origin: Conversational Analytics, Dashboard, Look, Explore adhoc, PDT Build, Scheduled Task, Alert, SQL Runner, API, Direct BQ"
   }
 
   dimension: history_slug {

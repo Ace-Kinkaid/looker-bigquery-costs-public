@@ -8,11 +8,11 @@
     - name: executive_overview
       label: "Executive Overview"
     - name: user_chargeback
-      label: "User & Department Chargeback"
+      label: "User & Group Details"
     - name: content_optimizer
-      label: "Content & Dashboard Optimizer"
+      label: "Content & Query Details"
     - name: pdt_shared_infra
-      label: "PDT & Shared Infrastructure"
+      label: "PDTs and Schedules"
 
   filters:
     - name: query_timeframe
@@ -27,7 +27,6 @@
       model: bq_cost_attribution
       explore: looker_cost_analytics
       field: bigquery_looker_jobs.query_time_date
-
 
     - name: project_id
       title: "GCP Project ID"
@@ -116,7 +115,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "## 📈 Executive Spend Overview & Velocity\nMonitor enterprise BigQuery scan volume, gross and net spend, cache efficiency, and high-level cost attribution across business domains, shared infrastructure, and conversational AI."
+      body_text: "## Executive Spend Overview & Velocity\nMonitor enterprise BigQuery scan volume, gross and net spend, cache efficiency, and high-level cost attribution across business domains, shared infrastructure, and conversational AI."
       row: 0
       col: 0
       width: 24
@@ -231,7 +230,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 📊 Spend Velocity & Workload Distribution\nAnalyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
+      body_text: "### Spend Velocity & Workload Distribution\nAnalyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
       row: 5
       col: 0
       width: 24
@@ -324,7 +323,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🏆 Top Cost Drivers\nIdentify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top query actors driving BigQuery consumption."
+      body_text: "### Top Cost Drivers\nIdentify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top query actors driving BigQuery consumption."
       row: 15
       col: 0
       width: 24
@@ -407,14 +406,14 @@
       height: 6
 
     # -------------------------------------------------------------
-    # TAB 2: USER & DEPARTMENT CHARGEBACK
+    # TAB 2: USER & GROUP DETAILS
     # -------------------------------------------------------------
     - name: tab2_header_banner
       tab_name: user_chargeback
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "## 👥 Actor & Department Cost Chargeback\nGranular showback and chargeback attribution across Looker User Groups, organizational departments, individual query actors, and direct BigQuery accounts."
+      body_text: "## Actor and Group Spend Attribution\nGranular showback attribution across Looker User Groups, individual query actors, Looker system queries and direct BigQuery queries."
       row: 0
       col: 0
       width: 24
@@ -425,7 +424,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🏢 Department & Query Actor Spend Analysis\nCompare overall team consumption and drill into individual query actors, their assigned roles, and average cost per query."
+      body_text: "### Group & Query Actor Spend Analysis\nCompare overall group consumption and drill into individual query actors and average cost per query."
       row: 2
       col: 0
       width: 24
@@ -433,7 +432,7 @@
 
     - name: department_spend_breakdown
       tab_name: user_chargeback
-      title: "Spend by Looker User Group / Team"
+      title: "Spend by Looker User Group"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_column
@@ -501,7 +500,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🔍 Query Actor Behavior & Source Distribution\nUnderstand how each query actor queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
+      body_text: "### Query Actor Behavior & Source Distribution\nUnderstand how each query actor queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
       row: 12
       col: 0
       width: 24
@@ -537,14 +536,14 @@
       height: 8
 
     # -------------------------------------------------------------
-    # TAB 3: CONTENT & DASHBOARD OPTIMIZER
+    # TAB 3: CONTENT & QUERY DETAILS
     # -------------------------------------------------------------
     - name: tab3_header_banner
       tab_name: content_optimizer
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "## ⚡ Content, Explore & Query Optimization\nIdentify optimization opportunities, runaway queries, heavy dashboards with low cache hit rates, and expensive data models."
+      body_text: "## Content, Explore & Query Analysis\nIdentify optimization opportunities, expensive queries, heavy dashboards with low cache hit rates, and high-cost data models."
       row: 0
       col: 0
       width: 24
@@ -555,7 +554,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 📊 Dashboard Cost & Inefficiency Ranking\nEvaluate dashboard query costs, cache hit rates, and average cost per query to prioritize datagroup persistence and query optimization."
+      body_text: "### Dashboard Cost & Inefficiency Ranking\nEvaluate dashboard query costs, cache hit rates, and average cost per query to prioritize datagroup persistence and query optimization."
       row: 2
       col: 0
       width: 24
@@ -608,7 +607,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🔬 Explores, Models & Individual Query Deep-Dive\nReview model/explore cost concentrations alongside individual high-cost BigQuery jobs with direct clickable links to the Google Cloud Console."
+      body_text: "### Top 10 Most Expensive Queries\nReview model/explore cost concentrations alongside individual high-cost BigQuery jobs with direct clickable links to the Google Cloud Console."
       row: 12
       col: 0
       width: 24
@@ -656,12 +655,13 @@
 
     - name: runaway_queries_inspector
       tab_name: content_optimizer
-      title: "Most Expensive Queries"
+      title: "Top 10 Most Expensive Queries"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_grid
       fields: [
         bigquery_looker_jobs.job_id,
+        bigquery_looker_jobs.project_id,
         bigquery_looker_jobs.looker_user_name,
         bigquery_looker_jobs.content_name,
         bigquery_looker_jobs.query_time_time,
@@ -669,8 +669,9 @@
         bigquery_looker_jobs.total_gigabytes_billed,
         bigquery_looker_jobs.total_cost
       ]
+      hidden_fields: [bigquery_looker_jobs.project_id]
       sorts: [bigquery_looker_jobs.total_cost desc]
-      limit: 20
+      limit: 10
       show_view_names: false
       show_row_numbers: true
       series_cell_visualizations:
@@ -694,14 +695,14 @@
       height: 8
 
     # -------------------------------------------------------------
-    # TAB 4: PDT & SHARED INFRASTRUCTURE
+    # TAB 4: PDTS AND SCHEDULES
     # -------------------------------------------------------------
     - name: tab4_header_banner
       tab_name: pdt_shared_infra
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "## 🏗️ Persistent Derived Tables (PDT) & Shared Infrastructure\nMonitor background PDT build costs, regenerator schedules, long-running scratch builds, automated alerts, and scheduled report deliveries."
+      body_text: "## Persistent Derived Tables (PDT) & Shared Infrastructure\nMonitor background PDT build costs, regenerator schedules, long-running scratch builds, automated alerts, and scheduled report deliveries."
       row: 0
       col: 0
       width: 24
@@ -716,7 +717,7 @@
       fields: [bigquery_looker_jobs.total_cost]
       custom_color: "#4285F4"
       filters:
-        bigquery_looker_jobs.query_source: "pdt_build"
+        bigquery_looker_jobs.query_source: "PDT Build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -735,7 +736,7 @@
       fields: [bigquery_looker_jobs.query_count]
       custom_color: "#FBBC04"
       filters:
-        bigquery_looker_jobs.query_source: "pdt_build"
+        bigquery_looker_jobs.query_source: "PDT Build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -753,7 +754,7 @@
       fields: [bigquery_looker_jobs.total_terabytes_billed]
       custom_color: "#34A853"
       filters:
-        bigquery_looker_jobs.query_source: "pdt_build"
+        bigquery_looker_jobs.query_source: "PDT Build"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -768,7 +769,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🔄 Daily PDT Build Cadence & High-Cost Table Analysis\nTrack daily rebuild spend and identify the most expensive persistent derived tables by gigabytes scanned and execution runtime."
+      body_text: "### Daily PDT Build Cadence & High-Cost Table Analysis\nTrack daily rebuild spend and identify the most expensive persistent derived tables by gigabytes scanned and execution runtime."
       row: 5
       col: 0
       width: 24
@@ -782,7 +783,7 @@
       type: looker_column
       fields: [bigquery_looker_jobs.query_time_date, bigquery_looker_jobs.total_cost]
       filters:
-        bigquery_looker_jobs.query_source: "pdt_build"
+        bigquery_looker_jobs.query_source: "PDT Build"
       sorts: [bigquery_looker_jobs.query_time_date desc]
       limit: 100
       series_colors:
@@ -811,7 +812,7 @@
         bigquery_looker_jobs.avg_runtime_seconds
       ]
       filters:
-        bigquery_looker_jobs.query_source: "pdt_build"
+        bigquery_looker_jobs.query_source: "PDT Build"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 25
       show_view_names: false
@@ -839,7 +840,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### ⏰ Automated Background Tasks & Scheduled Deliveries\nAudit spend from scheduled email/webhook deliveries, rendering jobs, and threshold-based alerts running in the background."
+      body_text: "### Automated Background Tasks & Scheduled Deliveries\nAudit spend from scheduled email/webhook deliveries, rendering jobs, and threshold-based alerts running in the background."
       row: 15
       col: 0
       width: 24
@@ -859,7 +860,7 @@
         bigquery_looker_jobs.total_cost
       ]
       filters:
-        bigquery_looker_jobs.query_source: "scheduled_task,alert"
+        bigquery_looker_jobs.query_source: "Scheduled Task,Alert"
       sorts: [bigquery_looker_jobs.total_cost desc]
       show_view_names: false
       show_row_numbers: true
