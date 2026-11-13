@@ -519,6 +519,8 @@
       ]
       pivots: [bigquery_looker_jobs.query_source]
       filters:
+        bigquery_looker_jobs.is_looker_query: "yes"
+        bigquery_looker_jobs.cost_center: "-Non-Looker / Direct BigQuery"
         bigquery_looker_jobs.looker_user_name: "-Direct BQ,-Direct BQ Console,-EMPTY"
       sorts: [bigquery_looker_jobs.total_cost desc 0]
       limit: 15
