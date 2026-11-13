@@ -518,11 +518,40 @@
         bigquery_looker_jobs.total_cost
       ]
       pivots: [bigquery_looker_jobs.query_source]
+      filters:
+        bigquery_looker_jobs.looker_user_name: "-Direct BQ,-Direct BQ Console,-EMPTY"
       sorts: [bigquery_looker_jobs.total_cost desc 0]
       limit: 15
       stacking: normal
       show_view_names: false
-      colors: ["#9334E6", "#1A73E8", "#EA4335", "#FBBC04", "#34A853", "#FF6D00", "#12B5CB", "#5F6368", "#00ACC1", "#C5221F"]
+      color_application:
+        collection_id: google
+        custom:
+          id: custom_google_actor_palette
+          label: Google Colors
+          type: discrete
+          colors:
+            - "#9334E6"
+            - "#1A73E8"
+            - "#EA4335"
+            - "#FBBC04"
+            - "#34A853"
+            - "#FF6D00"
+            - "#12B5CB"
+            - "#5F6368"
+      advanced_vis_config: |
+        {
+          "colors": [
+            "#9334E6",
+            "#1A73E8",
+            "#EA4335",
+            "#FBBC04",
+            "#34A853",
+            "#FF6D00",
+            "#12B5CB",
+            "#5F6368"
+          ]
+        }
       series_colors:
         "Conversational Analytics": "#9334E6"
         "Conversational Analytics - bigquery_looker_jobs.total_cost": "#9334E6"
