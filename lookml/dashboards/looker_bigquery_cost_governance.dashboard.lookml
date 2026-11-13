@@ -324,7 +324,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🏆 Top Cost Drivers\nIdentify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top business users driving BigQuery consumption."
+      body_text: "### 🏆 Top Cost Drivers\nIdentify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top query actors driving BigQuery consumption."
       row: 15
       col: 0
       width: 24
@@ -372,7 +372,7 @@
 
     - name: top_expensive_users_table
       tab_name: executive_overview
-      title: "Top 5 Most Expensive Users"
+      title: "Top 5 Most Expensive Query Actors"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_grid
@@ -382,8 +382,6 @@
         bigquery_looker_jobs.total_terabytes_billed,
         bigquery_looker_jobs.total_cost
       ]
-      filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 5
       show_view_names: false
@@ -416,7 +414,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "## 👥 User & Department Cost Chargeback\nGranular showback and chargeback attribution across Looker User Groups, organizational departments, individual business users, and direct BigQuery accounts."
+      body_text: "## 👥 Actor & Department Cost Chargeback\nGranular showback and chargeback attribution across Looker User Groups, organizational departments, individual query actors, and direct BigQuery accounts."
       row: 0
       col: 0
       width: 24
@@ -427,7 +425,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🏢 Department & Individual User Spend Analysis\nCompare overall team consumption and drill into individual business users, their assigned roles, and average cost per query."
+      body_text: "### 🏢 Department & Query Actor Spend Analysis\nCompare overall team consumption and drill into individual query actors, their assigned roles, and average cost per query."
       row: 2
       col: 0
       width: 24
@@ -460,7 +458,7 @@
 
     - name: user_spend_breakdown
       tab_name: user_chargeback
-      title: "Top Individual Users by Spend"
+      title: "Top Query Actors by Spend"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_grid
@@ -472,8 +470,6 @@
         bigquery_looker_jobs.total_cost,
         bigquery_looker_jobs.average_cost_per_query
       ]
-      filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc]
       limit: 25
       show_view_names: false
@@ -505,7 +501,7 @@
       type: text
       title_text: ""
       subtitle_text: ""
-      body_text: "### 🔍 User Query Behavior & Source Distribution\nUnderstand how each user queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
+      body_text: "### 🔍 Query Actor Behavior & Source Distribution\nUnderstand how each query actor queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
       row: 12
       col: 0
       width: 24
@@ -513,7 +509,7 @@
 
     - name: user_query_type_matrix
       tab_name: user_chargeback
-      title: "User Query Source Distribution"
+      title: "Query Source Distribution by Actor"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_bar
@@ -523,8 +519,6 @@
         bigquery_looker_jobs.total_cost
       ]
       pivots: [bigquery_looker_jobs.query_source]
-      filters:
-        bigquery_looker_jobs.looker_user_name: "-Looker PDT Background Process,-Looker System / Scheduled,-Direct BQ,-Conversational Analytics User,-Conversational Analytics"
       sorts: [bigquery_looker_jobs.total_cost desc 0]
       limit: 15
       stacking: normal

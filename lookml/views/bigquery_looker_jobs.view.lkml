@@ -612,7 +612,7 @@ view: bigquery_looker_jobs {
   dimension: looker_user_name {
     type: string
     sql: ${TABLE}.looker_user_name ;;
-    label: "User Name"
+    label: "Query Actor"
     description: "Name of the Looker user, PDT background process, or system process executing the job, or 'Direct BQ' for non-Looker jobs"
     suggest_persist_for: "0 seconds"
     suggest_dimension: bigquery_looker_jobs.looker_only_user_name
@@ -634,8 +634,8 @@ view: bigquery_looker_jobs {
   dimension: looker_user_email {
     type: string
     sql: ${TABLE}.raw_user_email ;;
-    label: "User Email"
-    description: "Email address of the querying user"
+    label: "Actor Email"
+    description: "Email address of the querying user or service actor"
   }
 
   dimension: bq_executing_account {
