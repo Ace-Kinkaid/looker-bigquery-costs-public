@@ -549,17 +549,6 @@
       width: 24
       height: 2
 
-    - name: tab3_section1_desc
-      tab_name: content_optimizer
-      type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Dashboard Cost & Inefficiency Ranking\nEvaluate dashboard query costs, cache hit rates, and average cost per query to prioritize datagroup persistence and query optimization."
-      row: 2
-      col: 0
-      width: 24
-      height: 2
-
     - name: dashboard_spend_leaderboard
       tab_name: content_optimizer
       title: "Most Expensive Dashboards"
@@ -597,21 +586,10 @@
         user_role: looker_users_groups_roles.role_name
         cost_center: bigquery_looker_jobs.cost_center
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
-      row: 4
+      row: 2
       col: 0
       width: 24
       height: 8
-
-    - name: tab3_section2_desc
-      tab_name: content_optimizer
-      type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Top 10 Most Expensive Queries\nReview model/explore cost concentrations alongside individual high-cost BigQuery jobs with direct clickable links to the Google Cloud Console."
-      row: 12
-      col: 0
-      width: 24
-      height: 2
 
     - name: expensive_explores_table
       tab_name: content_optimizer
@@ -640,6 +618,10 @@
           is_active: false
         bigquery_looker_jobs.cache_hit_rate:
           is_active: false
+      filters:
+        bigquery_looker_jobs.query_source: "Dashboard,Look,Explore adhoc,Conversational Analytics"
+        bigquery_looker_jobs.model_name: "-Looker Platform System,-Direct BigQuery Console,-External Data Pipeline,-Looker PDT Pipeline,-PDT: %,-EMPTY"
+        bigquery_looker_jobs.explore_name: "-Connection Heartbeat & Metadata,-Ad-hoc / Direct SQL,-SQL Runner Ad-hoc SQL,-PDT Scratch Table Build,-EMPTY"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -648,7 +630,7 @@
         user_role: looker_users_groups_roles.role_name
         cost_center: bigquery_looker_jobs.cost_center
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
-      row: 14
+      row: 10
       col: 0
       width: 24
       height: 8
@@ -689,7 +671,7 @@
         user_role: looker_users_groups_roles.role_name
         cost_center: bigquery_looker_jobs.cost_center
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
-      row: 22
+      row: 18
       col: 0
       width: 24
       height: 8
