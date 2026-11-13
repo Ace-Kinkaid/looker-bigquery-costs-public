@@ -522,6 +522,17 @@
       limit: 15
       stacking: normal
       show_view_names: false
+      series_colors:
+        "Conversational Analytics": "#9334E6"
+        "Dashboard": "#1A73E8"
+        "Explore adhoc": "#4285F4"
+        "PDT Build": "#34A853"
+        "Scheduled Task": "#FBBC04"
+        "Alert": "#FA7B17"
+        "SQL Runner": "#24C1E0"
+        "API": "#12B5CB"
+        "Direct BQ": "#EA4335"
+        "Look": "#A142F4"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
@@ -578,6 +589,9 @@
           is_active: false
         bigquery_looker_jobs.average_cost_per_query:
           is_active: false
+      filters:
+        bigquery_looker_jobs.dashboard_title: "-Ad-hoc / Non-Dashboard,-EMPTY"
+        bigquery_looker_jobs.query_source: "Dashboard"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
