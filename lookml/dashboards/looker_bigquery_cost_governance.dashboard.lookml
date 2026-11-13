@@ -524,11 +524,11 @@
       show_view_names: false
       series_colors:
         "Dashboard": "#1A73E8"
-        "Explore adhoc": "#FF6D00"
+        "Explore adhoc": "#FBBC04"
         "PDT Build": "#34A853"
         "Direct BQ": "#EA4335"
         "Conversational Analytics": "#9334E6"
-        "Scheduled Task": "#FBBC04"
+        "Scheduled Task": "#FF6D00"
         "Look": "#12B5CB"
         "SQL Runner": "#5F6368"
         "API": "#00ACC1"
