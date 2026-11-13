@@ -367,7 +367,7 @@
       row: 17
       col: 0
       width: 24
-      height: 6
+      height: 4
 
     - name: top_expensive_users_table
       tab_name: executive_overview
@@ -400,10 +400,10 @@
         user_role: looker_users_groups_roles.role_name
         cost_center: bigquery_looker_jobs.cost_center
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
-      row: 23
+      row: 21
       col: 0
       width: 24
-      height: 6
+      height: 4
 
     # -------------------------------------------------------------
     # TAB 2: USER & GROUP DETAILS
