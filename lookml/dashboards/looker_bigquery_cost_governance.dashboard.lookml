@@ -523,16 +523,16 @@
       stacking: normal
       show_view_names: false
       series_colors:
-        "Conversational Analytics": "#9334E6"
         "Dashboard": "#1A73E8"
-        "Explore adhoc": "#4285F4"
+        "Explore adhoc": "#FF6D00"
         "PDT Build": "#34A853"
-        "Scheduled Task": "#FBBC04"
-        "Alert": "#FA7B17"
-        "SQL Runner": "#24C1E0"
-        "API": "#12B5CB"
         "Direct BQ": "#EA4335"
-        "Look": "#A142F4"
+        "Conversational Analytics": "#9334E6"
+        "Scheduled Task": "#FBBC04"
+        "Look": "#12B5CB"
+        "SQL Runner": "#5F6368"
+        "API": "#00ACC1"
+        "Alert": "#C5221F"
       listen:
         query_timeframe: bigquery_looker_jobs.query_time_date
         project_id: bigquery_looker_jobs.selected_project
