@@ -366,7 +366,7 @@
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
       row: 17
       col: 0
-      width: 12
+      width: 24
       height: 6
 
     - name: top_expensive_users_table
@@ -400,9 +400,9 @@
         user_role: looker_users_groups_roles.role_name
         cost_center: bigquery_looker_jobs.cost_center
         cost_per_tb: bigquery_looker_jobs.cost_per_tb_rate
-      row: 17
-      col: 12
-      width: 12
+      row: 23
+      col: 0
+      width: 24
       height: 6
 
     # -------------------------------------------------------------
