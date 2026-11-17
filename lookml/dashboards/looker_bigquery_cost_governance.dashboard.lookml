@@ -238,7 +238,7 @@
 
     - name: daily_spend_trend_chart
       tab_name: executive_overview
-      title: "Daily BigQuery Query Spend & Volume Trend"
+      title: "Daily BigQuery Spend ($) & Query Volume Trend"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_line
@@ -254,7 +254,7 @@
         bigquery_looker_jobs.query_count: line
       y_axes:
         - orientation: left
-          label: "Total Cost ($)"
+          label: "Daily Gross Cost ($)"
           showLabels: true
           showValues: true
           unpinAxis: false
@@ -290,7 +290,7 @@
 
     - name: cost_center_donut
       tab_name: executive_overview
-      title: "Spend by Workload Category"
+      title: "BigQuery Spend by Workload Category"
       model: bq_cost_attribution
       explore: looker_cost_analytics
       type: looker_pie
