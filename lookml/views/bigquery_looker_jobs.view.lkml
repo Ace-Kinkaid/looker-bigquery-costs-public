@@ -289,7 +289,11 @@ view: bigquery_looker_jobs {
               OR EXISTS (SELECT 1 FROM UNNEST(r.labels) l WHERE l.key LIKE 'looker%')
               THEN 'explore_adhoc'
 
-            -- 10. Non-Looker Direct BigQuery / Connection Heartbeats without UI headers
+            -- 10. Looker Platform System / Heartbeats / Maintenance (Looker service account or query comment without UI context)
+            WHEN r.bq_executing_account LIKE '%looker%' OR r.query LIKE '-- Looker%' OR r.query LIKE '/* Looker%'
+              THEN 'looker_system'
+
+            -- 11. Non-Looker Direct BigQuery / External queries
             ELSE 'direct_bigquery'
           END AS base_query_source
         FROM raw_jobs r
@@ -325,7 +329,7 @@ view: bigquery_looker_jobs {
             WHEN e.base_query_source = 'pdt_build' THEN 'Looker PDT Pipeline'
             WHEN e.base_query_source = 'sql_runner' THEN 'Looker SQL Runner'
             WHEN e.base_query_source = 'explore_adhoc' THEN 'Looker Ad-hoc Explore'
-            WHEN e.is_looker_query_base THEN 'Looker Platform System'
+            WHEN e.base_query_source = 'looker_system' OR e.is_looker_query_base THEN 'Looker Platform System'
             WHEN e.bq_executing_account LIKE '%.gserviceaccount.com' THEN 'External Data Pipeline'
             ELSE 'Direct BigQuery Console'
           END AS model_name,
@@ -343,7 +347,7 @@ view: bigquery_looker_jobs {
             WHEN e.base_query_source = 'pdt_build' THEN 'PDT Scratch Table Build'
             WHEN e.base_query_source = 'sql_runner' THEN 'SQL Runner Ad-hoc SQL'
             WHEN e.base_query_source = 'explore_adhoc' THEN 'Looker Ad-hoc Query'
-            WHEN e.is_looker_query_base THEN 'Connection Heartbeat & Metadata'
+            WHEN e.base_query_source = 'looker_system' OR e.is_looker_query_base THEN 'Connection Heartbeat & Metadata'
             WHEN e.bq_executing_account LIKE '%.gserviceaccount.com' THEN CONCAT('Pipeline: ', SPLIT(e.bq_executing_account, '@')[OFFSET(0)])
             ELSE CONCAT('Direct User SQL (', e.bq_executing_account, ')')
           END AS explore_name,
@@ -360,7 +364,7 @@ view: bigquery_looker_jobs {
             WHEN e.base_look_id IS NOT NULL THEN 'Looker Look'
             WHEN e.base_query_source = 'sql_runner' THEN 'Looker SQL Runner'
             WHEN h.query_explore IS NOT NULL OR e.base_explore_name IS NOT NULL OR e.base_query_source = 'explore_adhoc' THEN 'Looker Explore Query'
-            WHEN e.is_looker_query_base THEN 'Looker Platform Maintenance'
+            WHEN e.base_query_source = 'looker_system' OR e.is_looker_query_base THEN 'Looker Platform Maintenance'
             WHEN e.bq_executing_account LIKE '%.gserviceaccount.com' THEN 'External Data Pipeline'
             ELSE 'Direct BigQuery (Human User)'
           END AS query_origin_type,
@@ -369,6 +373,7 @@ view: bigquery_looker_jobs {
             WHEN e.base_query_source = 'conversational_analytics' THEN TRUE
             WHEN h.api_client_name = 'Conversational Analytics' OR h.agent_name IS NOT NULL OR h.ca_agent_id IS NOT NULL THEN TRUE
             WHEN e.base_query_source = 'pdt_build' THEN TRUE
+            WHEN e.base_query_source = 'looker_system' THEN TRUE
             WHEN h.history_id IS NOT NULL THEN TRUE
             ELSE e.is_looker_query_base
           END AS is_looker_query,
@@ -423,6 +428,7 @@ view: bigquery_looker_jobs {
           CASE
             WHEN query_source = 'conversational_analytics' THEN 'Conversational Analytics'
             WHEN query_source = 'pdt_build' THEN 'Looker PDTs'
+            WHEN query_source = 'looker_system' THEN 'Looker System'
             WHEN is_looker_query AND raw_user_name IS NOT NULL THEN 'Business Teams'
             WHEN is_looker_query THEN 'Looker System'
             ELSE 'Non-Looker / Direct BigQuery'
@@ -433,18 +439,20 @@ view: bigquery_looker_jobs {
             WHEN query_source = 'conversational_analytics' THEN COALESCE(raw_user_name, 'Conversational Analytics User')
             WHEN query_source = 'pdt_build' THEN 'Looker PDT Background Process'
             WHEN raw_user_name IS NOT NULL THEN raw_user_name
-            WHEN is_looker_query THEN 'Looker System / Scheduled'
+            WHEN is_looker_query OR query_source = 'looker_system' THEN 'Looker System / Scheduled'
             ELSE 'Direct BQ'
           END AS looker_user_name,
 
-          -- Unified Asset Label across Dashboards, Looks, Explores, and PDTs
+          -- Unified Asset Label across Dashboards, Looks, Explores, PDTs, System, and Direct
           CASE
             WHEN query_source = 'conversational_analytics' THEN CONCAT('Conversational Agent: ', COALESCE(agent_name, 'Conversational Analytics'))
             WHEN query_source = 'pdt_build' THEN CONCAT('PDT: ', COALESCE(pdt_name, explore_name, model_name, 'Scratch Table Build'))
+            WHEN query_source = 'looker_system' THEN CONCAT('System: ', explore_name)
             WHEN raw_dashboard_title IS NOT NULL THEN CONCAT('Dashboard: ', raw_dashboard_title)
             WHEN dashboard_id IS NOT NULL THEN CONCAT('Dashboard #', dashboard_id)
             WHEN raw_look_title IS NOT NULL THEN CONCAT('Look: ', raw_look_title)
             WHEN look_id IS NOT NULL THEN CONCAT('Look #', CAST(look_id AS STRING))
+            WHEN explore_name = 'Connection Heartbeat & Metadata' THEN 'System: Connection Heartbeat & Metadata'
             WHEN explore_name IS NOT NULL AND explore_name != 'Ad-hoc / Direct SQL' THEN CONCAT('Explore: ', explore_name)
             WHEN query_source = 'sql_runner' THEN 'SQL Runner Query'
             ELSE 'Ad-hoc / Direct BigQuery'
@@ -740,11 +748,12 @@ view: bigquery_looker_jobs {
       WHEN 'alert' THEN 'Alert'
       WHEN 'sql_runner' THEN 'SQL Runner'
       WHEN 'api' THEN 'API'
+      WHEN 'looker_system' THEN 'Looker System'
       WHEN 'direct_bigquery' THEN 'Direct BQ'
       ELSE INITCAP(REPLACE(${TABLE}.query_source, '_', ' '))
     END ;;
     label: "Query Source"
-    description: "Granular origin: Conversational Analytics, Dashboard, Look, Explore adhoc, PDT Build, Scheduled Task, Alert, SQL Runner, API, Direct BQ"
+    description: "Granular origin: Conversational Analytics, Dashboard, Look, Explore adhoc, PDT Build, Scheduled Task, Alert, SQL Runner, API, Looker System, Direct BQ"
   }
 
   dimension: history_slug {
