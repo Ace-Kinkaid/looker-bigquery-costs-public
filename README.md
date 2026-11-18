@@ -233,9 +233,16 @@ Looker System Activity exports are scheduled to deliver CSVs to GCS at **5:30 AM
 
 ## Step-by-Step Deployment Guide
 
+> **Execution Environment Requirement**:
+> The terminal commands in Steps 1 through 6 require `git` and the Google Cloud SDK (`gcloud` and `bq` CLI tools).
+> * **Recommended (Zero Local Install)**: Run these commands inside **[Google Cloud Shell](https://shell.cloud.google.com)** directly in your browser. Cloud Shell comes pre-installed with `gcloud`, `bq`, and `git`, and is pre-authenticated to your Google Cloud account.
+> * **Local Machine**: If running locally, ensure you have the [Google Cloud SDK installed](https://cloud.google.com/sdk/docs/install) and authenticated (`gcloud auth login`).
+
+---
+
 ### Step 1: Clone the GitHub Repository
 
-Open your local terminal and clone the repository:
+Open **Google Cloud Shell** (or your local terminal) and clone the repository:
 
 ```bash
 # Clone the repository
@@ -249,15 +256,17 @@ cd looker-bq-cost-governance
 
 ### Step 2: Environment Configuration
 
-Set your deployment environment variables in your terminal session:
+Set your deployment environment variables. **Be sure to replace the placeholder values with your actual Google Cloud Project ID and desired GCS bucket name:**
 
 ```bash
-# Set your GCP Project ID, Region, and GCS Bucket Name
-export PROJECT_ID="my-awesome-gcp-project"
-export REGION="us-central1"
-export TRIGGER_LOCATION="us"
-export BUCKET_NAME="my-awesome-gcs-bucket"
-export DATASET_ID="looker_bq_costs"
+# =================================================================================================
+# REPLACE THE PLACEHOLDERS BELOW WITH YOUR ACTUAL GCP PROJECT ID AND GCS BUCKET NAME
+# =================================================================================================
+export PROJECT_ID="my-awesome-gcp-project"          # Replace with your actual GCP Project ID (e.g. "finance-prod-123")
+export BUCKET_NAME="my-awesome-gcs-bucket"          # Replace with your unique GCS Bucket Name (e.g. "looker-exports-finance-prod")
+export REGION="us-central1"                         # Cloud Run Function compute region
+export TRIGGER_LOCATION="us"                        # GCS Bucket location (e.g. "us", "eu", "us-central1")
+export DATASET_ID="looker_bq_costs"                 # Target BigQuery dataset name (default: "looker_bq_costs")
 
 # Configure gcloud CLI context
 gcloud config set project "${PROJECT_ID}"
@@ -404,55 +413,52 @@ In your Looker web interface, set up daily automated exports from System Activit
 
 ### Step 8: Create the LookML Project & Configure Manifest
 
-Follow these steps to create and configure the LookML project in Looker:
+You can import the LookML project into Looker using either of the following methods:
 
-1. **Enable Development Mode**:
-   * In Looker, toggle the **Development Mode** switch on in the bottom-left navigation bar.
+#### Option A: Connect via Git (Recommended for Production)
+1. Fork or import this repository into your organization's GitHub or GitLab account.
+2. In Looker, enable **Development Mode** (toggle bottom-left).
+3. Navigate to **Develop** > **Projects** > **New LookML Project**.
+4. Enter Project Name: `bq_cost_attribution`, select **Blank Project**, and click **Create Project**.
+5. Click **Configure Git** in the project settings and paste your repository URL.
+6. Open `manifest.lkml`, update the 4 constants with your actual environment details, click **Validate LookML**, and click **Deploy to Production**.
 
-2. **Create New LookML Project**:
-   * Navigate to **Develop** > **Projects**.
-   * Click **New LookML Project**.
-   * **Project Name**: Enter `bq_cost_attribution`.
-   * **Starting Point**: Select **Blank Project** (or configure Git connection to your cloned repo).
-   * Click **Create Project**.
+#### Option B: Direct File Copy (Quickest for Testing / Dev Mode)
+1. In Looker, enable **Development Mode** (toggle bottom-left).
+2. Navigate to **Develop** > **Projects** > **New LookML Project**.
+3. Enter Project Name: `bq_cost_attribution`, select **Blank Project**, and click **Create Project**.
+4. In the file browser, create two directories: `/views/` and `/dashboards/`.
+5. Copy the contents of the files from the `lookml/` folder in this repository into Looker:
+   * Root: `manifest.lkml`, `bq_cost_attribution.model.lkml`
+   * `/views/`:
+     * `bigquery_looker_jobs.view.lkml`
+     * `looker_history.view.lkml`
+     * `looker_users_groups_roles.view.lkml`
+     * `looker_system_activity_enrichment.view.lkml`
+   * `/dashboards/`:
+     * `looker_bigquery_cost_governance.dashboard.lookml`
+6. Open `manifest.lkml` and update the constants:
+   ```lookml
+   constant: CONNECTION_NAME {
+     value: "your_bigquery_connection_name"
+   }
+   constant: GCP_PROJECT_ID {
+     value: "your-actual-gcp-project-id"
+   }
+   constant: BQ_REGION {
+     value: "region-us"
+   }
+   constant: BQ_DATASET_NAME {
+     value: "looker_bq_costs"
+   }
+   ```
+7. Click **Validate LookML** (verify 0 errors), click **Commit Changes & Push**, and click **Deploy to Production**.
 
-3. **Create Folder Structure & Add Files**:
-   * Create two folders: `/views/` and `/dashboards/`.
-   * Copy the files from this repository into your project:
-     * Root: `manifest.lkml`, `bq_cost_attribution.model.lkml`
-     * `/views/`:
-       * `bigquery_looker_jobs.view.lkml`
-       * `looker_history.view.lkml`
-       * `looker_users_groups_roles.view.lkml`
-       * `looker_system_activity_enrichment.view.lkml`
-     * `/dashboards/`:
-       * `looker_bigquery_cost_governance.dashboard.lookml`
+---
 
-4. **Update `manifest.lkml`**:
-   * Open `manifest.lkml` and update the constants:
-     ```lookml
-     constant: CONNECTION_NAME {
-       value: "your_bigquery_connection_name"
-     }
-     constant: GCP_PROJECT_ID {
-       value: "your-actual-gcp-project-id"
-     }
-     constant: BQ_REGION {
-       value: "region-us"
-     }
-     constant: BQ_DATASET_NAME {
-       value: "looker_bq_costs"
-     }
-     ```
-
-5. **Validate & Deploy to Production**:
-   * Click **Validate LookML** in the top-right corner (verify 0 errors).
-   * Click **Commit Changes & Push**.
-   * Click **Deploy to Production**.
-
-6. **Open the LookML Dashboard**:
-   * Navigate to **Browse** > **LookML Dashboards**.
-   * Click **Looker & BigQuery Cost Governance** (or navigate directly to `/dashboards/bq_cost_attribution::looker_bigquery_cost_governance`).
+#### Accessing the Deployed Dashboard
+* Navigate to **Browse** > **LookML Dashboards**.
+* Click **Looker & BigQuery Cost Governance** (or navigate directly to `/dashboards/bq_cost_attribution::looker_bigquery_cost_governance`).
 
 ---
 
