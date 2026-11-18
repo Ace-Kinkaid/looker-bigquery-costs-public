@@ -393,9 +393,16 @@ view: bigquery_looker_jobs {
             ELSE e.base_query_source
           END AS query_source
         FROM extracted_jobs e
-        LEFT JOIN `looker-core-4cjg`.looker_bq_costs.history h
-          ON e.history_slug IS NOT NULL
-          AND e.history_slug = h.history_slug
+        LEFT JOIN (
+          SELECT * EXCEPT(rn)
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY history_slug ORDER BY history_id DESC) AS rn
+            FROM `looker-core-4cjg`.looker_bq_costs.history
+            WHERE history_slug IS NOT NULL
+          )
+          WHERE rn = 1
+        ) h
+          ON e.history_slug = h.history_slug
       ),
 
       parsed_jobs AS (
