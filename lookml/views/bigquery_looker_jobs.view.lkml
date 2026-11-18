@@ -460,8 +460,10 @@ view: bigquery_looker_jobs {
             WHEN raw_look_title IS NOT NULL THEN CONCAT('Look: ', raw_look_title)
             WHEN look_id IS NOT NULL THEN CONCAT('Look #', CAST(look_id AS STRING))
             WHEN explore_name = 'Connection Heartbeat & Metadata' THEN 'System: Connection Heartbeat & Metadata'
-            WHEN explore_name IS NOT NULL AND explore_name != 'Ad-hoc / Direct SQL' THEN CONCAT('Explore: ', explore_name)
+            WHEN query_source = 'direct_bigquery' AND bq_executing_account LIKE '%.gserviceaccount.com' THEN CONCAT('External Pipeline: ', SPLIT(bq_executing_account, '@')[OFFSET(0)])
+            WHEN query_source = 'direct_bigquery' THEN CONCAT('Direct BigQuery: ', COALESCE(raw_user_name, bq_executing_account, 'Unknown User'))
             WHEN query_source = 'sql_runner' THEN 'SQL Runner Query'
+            WHEN explore_name IS NOT NULL AND explore_name NOT IN ('Ad-hoc / Direct SQL', 'Looker Ad-hoc Query') AND NOT (explore_name LIKE 'Direct User SQL%') AND NOT (explore_name LIKE 'Pipeline:%') THEN CONCAT('Explore: ', explore_name)
             ELSE 'Ad-hoc / Direct BigQuery'
           END AS content_name,
 
