@@ -113,9 +113,9 @@
     - name: tab1_header_banner
       tab_name: executive_overview
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "## Executive Spend Overview & Velocity\nMonitor enterprise BigQuery scan volume, gross and net spend, cache efficiency, and high-level cost attribution across business domains, shared infrastructure, and conversational AI."
+      title_text: "Executive Spend Overview & Velocity"
+      subtitle_text: "Monitor enterprise BigQuery scan volume, gross and net spend, cache efficiency, and high-level cost attribution across business domains, shared infrastructure, and conversational AI."
+      body_text: ""
       row: 0
       col: 0
       width: 24
@@ -228,9 +228,9 @@
     - name: tab1_section1_desc
       tab_name: executive_overview
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Spend Velocity & Workload Distribution\nAnalyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
+      title_text: "Spend Velocity & Workload Distribution"
+      subtitle_text: "Analyze daily query spend against query volume (dual axes) and view cost allocation across Business Teams, Shared PDTs, Conversational Analytics, and Direct BigQuery."
+      body_text: ""
       row: 5
       col: 0
       width: 24
@@ -321,9 +321,9 @@
     - name: tab1_section2_desc
       tab_name: executive_overview
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Top Cost Drivers\nIdentify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top query actors driving BigQuery consumption."
+      title_text: "Top Cost Drivers"
+      subtitle_text: "Identify the highest-spend content assets (dashboards, looks, explores, PDTs) and the top query actors driving BigQuery consumption."
+      body_text: ""
       row: 15
       col: 0
       width: 24
@@ -411,9 +411,9 @@
     - name: tab2_header_banner
       tab_name: user_chargeback
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "## Actor and Group Spend Attribution\nGranular showback attribution across Looker User Groups, individual query actors, Looker system queries and direct BigQuery queries."
+      title_text: "Actor and Group Spend Attribution"
+      subtitle_text: "Granular showback attribution across Looker User Groups, individual query actors, Looker system queries and direct BigQuery queries."
+      body_text: ""
       row: 0
       col: 0
       width: 24
@@ -422,9 +422,9 @@
     - name: tab2_section1_desc
       tab_name: user_chargeback
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Group & Query Actor Spend Analysis\nCompare overall group consumption and drill into individual query actors and average cost per query."
+      title_text: "Group & Query Actor Spend Analysis"
+      subtitle_text: "Compare overall group consumption and drill into individual query actors and average cost per query."
+      body_text: ""
       row: 2
       col: 0
       width: 24
@@ -498,9 +498,9 @@
     - name: tab2_section2_desc
       tab_name: user_chargeback
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Query Actor Behavior & Source Distribution\nUnderstand how each query actor queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
+      title_text: "Query Actor Behavior & Source Distribution"
+      subtitle_text: "Understand how each query actor queries BigQuery—whether through dashboards, ad-hoc explores, SQL Runner, conversational AI, or scheduled reports."
+      body_text: ""
       row: 12
       col: 0
       width: 24
@@ -673,9 +673,9 @@
     - name: tab3_header_banner
       tab_name: content_optimizer
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "## Content, Explore & Query Analysis\nIdentify optimization opportunities, expensive queries, heavy dashboards with low cache hit rates, and high-cost data models."
+      title_text: "Content, Explore & Query Analysis"
+      subtitle_text: "Identify optimization opportunities, expensive queries, heavy dashboards with low cache hit rates, and high-cost data models."
+      body_text: ""
       row: 0
       col: 0
       width: 24
@@ -817,9 +817,9 @@
     - name: tab4_header_banner
       tab_name: pdt_shared_infra
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "## Persistent Derived Tables (PDT) & Shared Infrastructure\nMonitor background PDT build costs, regenerator schedules, long-running scratch builds, automated alerts, and scheduled report deliveries."
+      title_text: "Persistent Derived Tables (PDT) & Shared Infrastructure"
+      subtitle_text: "Monitor background PDT build costs, regenerator schedules, long-running scratch builds, automated alerts, and scheduled report deliveries."
+      body_text: ""
       row: 0
       col: 0
       width: 24
@@ -884,9 +884,9 @@
     - name: tab4_section1_desc
       tab_name: pdt_shared_infra
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Daily PDT Build Cadence & High-Cost Table Analysis\nTrack daily rebuild spend and identify the most expensive persistent derived tables by gigabytes scanned and execution runtime."
+      title_text: "Daily PDT Build Cadence & High-Cost Table Analysis"
+      subtitle_text: "Track daily rebuild spend and identify the most expensive persistent derived tables by gigabytes scanned and execution runtime."
+      body_text: ""
       row: 5
       col: 0
       width: 24
@@ -955,9 +955,9 @@
     - name: tab4_section2_desc
       tab_name: pdt_shared_infra
       type: text
-      title_text: ""
-      subtitle_text: ""
-      body_text: "### Automated Background Tasks & Scheduled Deliveries\nAudit spend from scheduled email/webhook deliveries, rendering jobs, and threshold-based alerts running in the background."
+      title_text: "Automated Background Tasks & Scheduled Deliveries"
+      subtitle_text: "Audit spend from scheduled email/webhook deliveries, rendering jobs, and threshold-based alerts running in the background."
+      body_text: ""
       row: 15
       col: 0
       width: 24
