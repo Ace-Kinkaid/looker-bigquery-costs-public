@@ -2,7 +2,7 @@ import os
 import functions_framework
 from google.cloud import bigquery
 
-PROJECT_ID = os.environ.get("GCP_PROJECT", "YOUR_PROJECT_ID")
+PROJECT_ID = os.environ.get("GCP_PROJECT", "my-awesome-gcp-project")
 DATASET_ID = os.environ.get("BQ_DATASET", "looker_bq_costs")
 
 bq_client = bigquery.Client(project=PROJECT_ID)

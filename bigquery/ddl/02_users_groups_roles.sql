@@ -1,9 +1,9 @@
 -- =================================================================================================
 -- USERS-GROUPS-ROLES BRIDGE TABLE DDL
--- Replace `YOUR_PROJECT_ID.YOUR_DATASET_ID` with your target GCP Project and BigQuery Dataset.
+-- Replace `my-awesome-gcp-project.looker_bq_costs` with your `<PROJECT_ID>.<DATASET_ID>`.
 -- =================================================================================================
 
-CREATE OR REPLACE TABLE `YOUR_PROJECT_ID.YOUR_DATASET_ID.users_groups_roles`
+CREATE OR REPLACE TABLE `my-awesome-gcp-project.looker_bq_costs.users_groups_roles`
 (
   user_id INT64 OPTIONS(description="Unique Looker internal User ID"),
   user_name STRING OPTIONS(description="Full name of the Looker user"),

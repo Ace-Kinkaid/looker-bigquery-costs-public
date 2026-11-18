@@ -112,7 +112,7 @@ view: bigquery_looker_jobs {
           -- Extract legacy comment format: -- Looker Query Context (User ID: 123, ...)
           REGEXP_EXTRACT(query, r"(?s)-- Looker Query Context \((.*?)\)") AS looker_legacy_context
         FROM
-          `looker-core-4cjg`.`region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+          `@{GCP_PROJECT_ID}`.`@{BQ_REGION}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
         WHERE
           job_type = 'QUERY'
           AND creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 180 DAY)
@@ -397,7 +397,7 @@ view: bigquery_looker_jobs {
           SELECT * EXCEPT(rn)
           FROM (
             SELECT *, ROW_NUMBER() OVER(PARTITION BY history_slug ORDER BY history_id DESC) AS rn
-            FROM `looker-core-4cjg`.looker_bq_costs.history
+            FROM `@{GCP_PROJECT_ID}`.@{BQ_DATASET_NAME}.history
             WHERE history_slug IS NOT NULL
           )
           WHERE rn = 1
@@ -406,7 +406,7 @@ view: bigquery_looker_jobs {
       ),
 
       parsed_jobs AS (
-        -- Step 4: Resolve human-readable user names and emails from looker_bq_costs.users
+        -- Step 4: Resolve human-readable user names and emails from @{BQ_DATASET_NAME}.users
         SELECT
           hm.*,
           COALESCE(
@@ -423,7 +423,7 @@ view: bigquery_looker_jobs {
             IF(hm.looker_user_id IS NOT NULL, CONCAT('user_', CAST(hm.looker_user_id AS STRING), '@looker.internal'), NULL)
           ) AS raw_user_email
         FROM history_matched_jobs hm
-        LEFT JOIN `looker-core-4cjg`.looker_bq_costs.users u
+        LEFT JOIN `@{GCP_PROJECT_ID}`.@{BQ_DATASET_NAME}.users u
           ON hm.looker_user_id = u.user_id
       ),
 
@@ -484,7 +484,7 @@ view: bigquery_looker_jobs {
   # =================================================================================================
   parameter: selected_project {
     type: string
-    default_value: "looker-core-4cjg"
+    default_value: "my-awesome-gcp-project"
     label: "Google Cloud Project ID"
     description: "Target GCP Project ID for BigQuery Information Schema analysis"
   }
@@ -505,10 +505,10 @@ view: bigquery_looker_jobs {
     sql: ${TABLE}.job_id ;;
     label: "BigQuery Job ID"
     description: "Unique BigQuery execution Job ID with direct clickable link to the Google Cloud BigQuery Console"
-    html: <a href="https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}looker-core-4cjg{% endif %}&j=bq:US:{{ value }}&page=queryhistory" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: underline;">{{ value }}</a> ;;
+    html: <a href="https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}my-awesome-gcp-project{% endif %}&j=bq:US:{{ value }}&page=queryhistory" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: underline;">{{ value }}</a> ;;
     link: {
       label: "View in Google Cloud BigQuery Console"
-      url: "https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}looker-core-4cjg{% endif %}&j=bq:US:{{ value }}&page=queryhistory"
+      url: "https://console.cloud.google.com/bigquery?project={% if bigquery_looker_jobs.project_id._value %}{{ bigquery_looker_jobs.project_id._value }}{% else %}my-awesome-gcp-project{% endif %}&j=bq:US:{{ value }}&page=queryhistory"
       icon_url: "https://cloud.google.com/favicon.ico"
     }
   }

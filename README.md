@@ -11,7 +11,7 @@ This solution delivers 100% granular cost attribution, automated zero-compute da
 2. [Solution Architecture](#solution-architecture)
 3. [Repository Structure](#repository-structure)
 4. [Prerequisites & Required IAM Permissions](#prerequisites--required-iam-permissions)
-5. [Configuration Placeholders Reference](#configuration-placeholders-reference)
+5. [Configuration Placeholders & Manifest Reference](#configuration-placeholders--manifest-reference)
 6. [PDT Build Timing & Modification Guide](#pdt-build-timing--modification-guide)
 7. [Step-by-Step Deployment Guide](#step-by-step-deployment-guide)
    - [Step 1: Clone the GitHub Repository](#step-1-clone-the-github-repository)
@@ -21,7 +21,7 @@ This solution delivers 100% granular cost attribution, automated zero-compute da
    - [Step 5: Initialize BigQuery Tables & DDL](#step-5-initialize-bigquery-tables--ddl)
    - [Step 6: Deploy the Cloud Run Ingestion Function](#step-6-deploy-the-cloud-run-ingestion-function)
    - [Step 7: Configure Looker System Activity Scheduled Exports](#step-7-configure-looker-system-activity-scheduled-exports)
-   - [Step 8: Create the LookML Project & Deploy Code](#step-8-create-the-lookml-project--deploy-code)
+   - [Step 8: Create the LookML Project & Configure Manifest](#step-8-create-the-lookml-project--configure-manifest)
    - [Step 9: Initial Backfill & Validation](#step-9-initial-backfill--validation)
 8. [Data Classification & Attribution Taxonomy](#data-classification--attribution-taxonomy)
 9. [Dashboard Tabs & Capabilities](#dashboard-tabs--capabilities)
@@ -52,7 +52,7 @@ flowchart TD
     end
 
     subgraph Storage ["Google Cloud Storage"]
-        GCS["gs://BUCKET_NAME/system_activity_reports/<br/>- users.csv<br/>- users_groups_roles.csv<br/>- history.csv"]
+        GCS["gs://my-awesome-gcs-bucket/system_activity_reports/<br/>- users.csv<br/>- users_groups_roles.csv<br/>- history.csv"]
     end
 
     subgraph EventarcSub ["Eventarc & Cloud Run Functions"]
@@ -111,12 +111,13 @@ looker-bq-cost-governance/
 │   │   └── requirements.txt           # Python dependencies (google-cloud-bigquery, functions-framework)
 │   └── deploy.sh                      # Shell deployment script with Eventarc trigger config
 └── lookml/
+    ├── manifest.lkml                  # Central project configuration constants (ONE-STOP LookML setup)
     ├── bq_cost_attribution.model.lkml  # Model file defining datagroups, caching, and joins
     ├── views/
     │   ├── bigquery_looker_jobs.view.lkml              # Primary derived table & attribution logic
     │   ├── looker_history.view.lkml                    # Looker System Activity history view
-    │   ├── looker_users.view.lkml                      # Looker users dimension view
-    │   └── looker_users_groups_roles.view.lkml         # User groups and roles bridge view
+    │   ├── looker_users_groups_roles.view.lkml         # User groups and roles bridge view
+    │   └── looker_system_activity_enrichment.view.lkml # Auxiliary enrichment view
     └── dashboards/
         └── looker_bigquery_cost_governance.dashboard.lookml # 4-tab LookML governance dashboard
 ```
@@ -153,17 +154,46 @@ The Cloud Run Function uses the default Compute Engine service account (`<PROJEC
 
 ---
 
-## Configuration Placeholders Reference
+## Configuration Placeholders & Manifest Reference
 
-Before deploying, update the following placeholder values across the code files to match your environment:
+To make deployment seamless, all placeholder values are isolated into clear, obvious configuration points:
 
-| Placeholder Variable | Example / Default Value | Files to Update | Line / Description |
+### 1. One-Stop LookML Configuration (`lookml/manifest.lkml`)
+In LookML, all project dependencies are managed centrally through **LookML Constants** in `lookml/manifest.lkml`. You only need to update these 4 values, and all models, views, and dashboards update automatically:
+
+```lookml
+project_name: "bq_cost_attribution"
+
+constant: CONNECTION_NAME {
+  value: "my_awesome_bq_connection"       # Your Looker BigQuery database connection name
+  export: override_optional
+}
+
+constant: GCP_PROJECT_ID {
+  value: "my-awesome-gcp-project"          # Your Google Cloud Project ID
+  export: override_optional
+}
+
+constant: BQ_REGION {
+  value: "region-us"                       # BigQuery Region (region-us, region-eu, region-us-central1)
+  export: override_optional
+}
+
+constant: BQ_DATASET_NAME {
+  value: "looker_bq_costs"                 # Target BigQuery dataset for ingested tables
+  export: override_optional
+}
+```
+
+### 2. Comprehensive Placeholders Table
+
+| Placeholder Variable | Example / Default Value | Files Where It Appears | How to Update |
 | :--- | :--- | :--- | :--- |
-| `PROJECT_ID` | `looker-core-4cjg` | `lookml/views/bigquery_looker_jobs.view.lkml`<br>`lookml/views/looker_history.view.lkml`<br>`lookml/views/looker_users.view.lkml`<br>`lookml/views/looker_users_groups_roles.view.lkml`<br>`pipeline/deploy.sh` | Replace project ID prefix in `INFORMATION_SCHEMA.JOBS_BY_PROJECT` and table references. |
-| `REGION` / Region Prefix | `region-us` | `lookml/views/bigquery_looker_jobs.view.lkml` | Set to your BigQuery dataset region qualifier (e.g., `region-us`, `region-eu`, `region-us-central1`). |
-| `DATASET_ID` | `looker_bq_costs` | `lookml/views/*.view.lkml`<br>`pipeline/deploy.sh`<br>`bigquery/ddl/*.sql` | Target BigQuery dataset storing the ingested System Activity tables. |
-| `CONNECTION_NAME` | `sample_retail_data` | `lookml/bq_cost_attribution.model.lkml` | Update `connection: "<your_bigquery_connection>"` to match your Looker connection name. |
-| `BUCKET_NAME` | `looker-core-4cjg-bucket` | `pipeline/deploy.sh`<br>Looker Schedule UI | Target GCS bucket for scheduled System Activity exports. |
+| `GCP_PROJECT_ID` | `my-awesome-gcp-project` | `lookml/manifest.lkml`<br>`pipeline/deploy.sh`<br>`bigquery/ddl/*.sql` | Update `constant: GCP_PROJECT_ID` in `manifest.lkml`, pass to `pipeline/deploy.sh`, or edit DDL scripts. |
+| `BQ_REGION` | `region-us` | `lookml/manifest.lkml`<br>`pipeline/deploy.sh` | Update `constant: BQ_REGION` in `manifest.lkml` (`region-us`, `region-eu`, etc.). |
+| `BQ_DATASET_NAME` | `looker_bq_costs` | `lookml/manifest.lkml`<br>`pipeline/deploy.sh`<br>`bigquery/ddl/*.sql` | Update `constant: BQ_DATASET_NAME` in `manifest.lkml` and DDL scripts. |
+| `CONNECTION_NAME` | `my_awesome_bq_connection` | `lookml/manifest.lkml` | Set to your Looker connection name (Admin > Database > Connections). |
+| `BUCKET_NAME` | `my-awesome-gcs-bucket` | `pipeline/deploy.sh`<br>Looker Schedule UI | Target GCS bucket for scheduled System Activity CSV exports. |
 
 ---
 
@@ -205,7 +235,7 @@ Looker System Activity exports are scheduled to deliver CSVs to GCS at **5:30 AM
 
 ### Step 1: Clone the GitHub Repository
 
-Open your local terminal and clone the repository to your local development machine:
+Open your local terminal and clone the repository:
 
 ```bash
 # Clone the repository
@@ -223,10 +253,10 @@ Set your deployment environment variables in your terminal session:
 
 ```bash
 # Set your GCP Project ID, Region, and GCS Bucket Name
-export PROJECT_ID="your-gcp-project-id"
+export PROJECT_ID="my-awesome-gcp-project"
 export REGION="us-central1"
 export TRIGGER_LOCATION="us"
-export BUCKET_NAME="your-gcs-bucket-name"
+export BUCKET_NAME="my-awesome-gcs-bucket"
 export DATASET_ID="looker_bq_costs"
 
 # Configure gcloud CLI context
@@ -284,24 +314,29 @@ Create the target BigQuery dataset and audit tables:
    ```
 
 2. **Execute Table DDLs**:
+   Open the DDL scripts in `bigquery/ddl/` and replace `my-awesome-gcp-project.looker_bq_costs` with your actual `<PROJECT_ID>.<DATASET_ID>`, or run them via `sed`:
    ```bash
    # 1. Users dimension table
-   bq query --use_legacy_sql=false < bigquery/ddl/01_users.sql
+   sed "s/my-awesome-gcp-project.looker_bq_costs/${PROJECT_ID}.${DATASET_ID}/g" bigquery/ddl/01_users.sql | bq query --use_legacy_sql=false
 
    # 2. Users Groups & Roles bridge table
-   bq query --use_legacy_sql=false < bigquery/ddl/02_users_groups_roles.sql
+   sed "s/my-awesome-gcp-project.looker_bq_costs/${PROJECT_ID}.${DATASET_ID}/g" bigquery/ddl/02_users_groups_roles.sql | bq query --use_legacy_sql=false
 
    # 3. History audit table
-   bq query --use_legacy_sql=false < bigquery/ddl/03_history.sql
+   sed "s/my-awesome-gcp-project.looker_bq_costs/${PROJECT_ID}.${DATASET_ID}/g" bigquery/ddl/03_history.sql | bq query --use_legacy_sql=false
    ```
 
 ---
 
 ### Step 6: Deploy the Cloud Run Ingestion Function
 
-The ingestion function is a Gen 2 Cloud Run Function (Python 3.11).
+Deploy the Gen 2 Cloud Run Function (Python 3.11):
 
 ```bash
+# Using the deployment script:
+./pipeline/deploy.sh "${PROJECT_ID}" "${BUCKET_NAME}" "${REGION}" "${TRIGGER_LOCATION}"
+
+# Or deploy directly with gcloud:
 gcloud functions deploy looker-system-activity-loader \
   --gen2 \
   --runtime=python311 \
@@ -330,7 +365,7 @@ In your Looker web interface, set up daily automated exports from System Activit
    * `Name` (`user.name`)
    * `Email` (`user.email`)
 3. Click the gear icon -> **Save and Schedule**.
-4. **Destination**: Google Cloud Storage (`gs://<BUCKET_NAME>/system_activity_reports/users.csv`).
+4. **Destination**: Google Cloud Storage (`gs://my-awesome-gcs-bucket/system_activity_reports/users.csv`).
 5. **Format**: CSV (no formatting).
 6. **Trigger**: Daily at `5:30 AM ET`.
 
@@ -343,7 +378,7 @@ In your Looker web interface, set up daily automated exports from System Activit
    * `Role Name` (`role.name`)
    * `Group ID` (`group.id`)
    * `Group Name` (`group.name`)
-3. Save and Schedule to `gs://<BUCKET_NAME>/system_activity_reports/users_groups_roles.csv` at `5:30 AM ET`.
+3. Save and Schedule to `gs://my-awesome-gcs-bucket/system_activity_reports/users_groups_roles.csv` at `5:30 AM ET`.
 
 #### Report 3: `history.csv`
 1. Navigate to **Explore > System Activity > History**.
@@ -363,11 +398,11 @@ In your Looker web interface, set up daily automated exports from System Activit
    * `CA Agent ID` (`query_api_client_context.ca_agent_id`)
    * `CA Conversation ID` (`query_api_client_context.ca_conversation_id`)
 3. Add filter: `History Created Date` = `in the past 3 days` (provides overlap for resilience).
-4. Save and Schedule to `gs://<BUCKET_NAME>/system_activity_reports/history.csv` at `5:30 AM ET`.
+4. Save and Schedule to `gs://my-awesome-gcs-bucket/system_activity_reports/history.csv` at `5:30 AM ET`.
 
 ---
 
-### Step 8: Create the LookML Project & Deploy Code
+### Step 8: Create the LookML Project & Configure Manifest
 
 Follow these steps to create and configure the LookML project in Looker:
 
@@ -384,18 +419,31 @@ Follow these steps to create and configure the LookML project in Looker:
 3. **Create Folder Structure & Add Files**:
    * Create two folders: `/views/` and `/dashboards/`.
    * Copy the files from this repository into your project:
-     * Root: `bq_cost_attribution.model.lkml`
+     * Root: `manifest.lkml`, `bq_cost_attribution.model.lkml`
      * `/views/`:
        * `bigquery_looker_jobs.view.lkml`
        * `looker_history.view.lkml`
-       * `looker_users.view.lkml`
        * `looker_users_groups_roles.view.lkml`
+       * `looker_system_activity_enrichment.view.lkml`
      * `/dashboards/`:
        * `looker_bigquery_cost_governance.dashboard.lookml`
 
-4. **Update Connection & Placeholders**:
-   * Open `bq_cost_attribution.model.lkml` and update `connection: "your_connection_name"` to match your BigQuery connection name.
-   * Open `views/bigquery_looker_jobs.view.lkml` and verify that the Project ID and Region in line 115 match your Google Cloud project (e.g. `` `your-project-id`.`region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT ``).
+4. **Update `manifest.lkml`**:
+   * Open `manifest.lkml` and update the constants:
+     ```lookml
+     constant: CONNECTION_NAME {
+       value: "your_bigquery_connection_name"
+     }
+     constant: GCP_PROJECT_ID {
+       value: "your-actual-gcp-project-id"
+     }
+     constant: BQ_REGION {
+       value: "region-us"
+     }
+     constant: BQ_DATASET_NAME {
+       value: "looker_bq_costs"
+     }
+     ```
 
 5. **Validate & Deploy to Production**:
    * Click **Validate LookML** in the top-right corner (verify 0 errors).
@@ -507,14 +555,14 @@ The LookML dashboard provides 4 specialized analytics tabs:
 ### Viewing Function Logs
 ```bash
 gcloud beta run services logs tail looker-system-activity-loader \
-  --project="your-gcp-project-id" \
+  --project="my-awesome-gcp-project" \
   --region="us-central1"
 ```
 
 ### Manual Trigger / Test Ingestion
 Upload a test CSV directly to GCS:
 ```bash
-gcloud storage cp test_history.csv gs://your-gcs-bucket-name/system_activity_reports/history.csv
+gcloud storage cp test_history.csv gs://my-awesome-gcs-bucket/system_activity_reports/history.csv
 ```
 
 ### Inspecting BigQuery Staging & Tables

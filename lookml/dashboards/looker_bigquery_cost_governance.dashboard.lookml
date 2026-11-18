@@ -31,7 +31,7 @@
     - name: project_id
       title: "GCP Project ID"
       type: field_filter
-      default_value: "looker-core-4cjg"
+      default_value: "my-awesome-gcp-project"
       allow_multiple_values: false
       required: true
       ui_config:

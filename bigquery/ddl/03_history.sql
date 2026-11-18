@@ -1,9 +1,9 @@
 -- =================================================================================================
 -- LOOKER SYSTEM ACTIVITY QUERY HISTORY TABLE DDL
--- Replace `YOUR_PROJECT_ID.YOUR_DATASET_ID` with your target GCP Project and BigQuery Dataset.
+-- Replace `my-awesome-gcp-project.looker_bq_costs` with your `<PROJECT_ID>.<DATASET_ID>`.
 -- =================================================================================================
 
-CREATE OR REPLACE TABLE `YOUR_PROJECT_ID.YOUR_DATASET_ID.history`
+CREATE OR REPLACE TABLE `my-awesome-gcp-project.looker_bq_costs.history`
 (
   history_id INT64 OPTIONS(description="Unique execution ID from Looker System Activity history"),
   created_at TIMESTAMP OPTIONS(description="Timestamp when Looker initiated the query"),
