@@ -1,44 +1,58 @@
 # Looker & BigQuery Cost Governance & Attribution Solution
 
-An enterprise-grade, event-driven solution that bridges the metadata gap between **Google Cloud BigQuery execution logs** (`INFORMATION_SCHEMA.JOBS_BY_PROJECT`) and **Looker System Activity** (Users, Departments, Dashboards, Explores, and Persistent Derived Tables). 
+An enterprise-grade, event-driven solution that bridges the metadata gap between **Google Cloud BigQuery execution logs** (`INFORMATION_SCHEMA.JOBS_BY_PROJECT`) and **Looker System Activity** (Users, Groups, Roles, Dashboards, Looks, Explores, and Persistent Derived Tables).
 
-This solution provides 100% granular cost attribution, automated $0-compute data ingestion, and a complete 4-tab interactive Looker governance dashboard.
-
----
-
-## 📑 Table of Contents
-1. [Solution Architecture](#-solution-architecture)
-2. [Repository Structure](#-repository-structure)
-3. [Prerequisites & Required IAM Permissions](#-prerequisites--required-iam-permissions)
-4. [Step-by-Step Deployment Guide](#-step-by-step-deployment-guide)
-   - [Step 1: Environment Configuration](#step-1-environment-configuration)
-   - [Step 2: Enable Google Cloud APIs](#step-2-enable-google-cloud-apis)
-   - [Step 3: Create GCS Storage Bucket & Grant IAM Roles](#step-3-create-gcs-storage-bucket--grant-iam-roles)
-   - [Step 4: Initialize BigQuery Tables & DDL](#step-4-initialize-bigquery-tables--ddl)
-   - [Step 5: Deploy the Cloud Run Ingestion Function](#step-5-deploy-the-cloud-run-ingestion-function)
-   - [Step 6: Configure Looker System Activity Scheduled Exports](#step-6-configure-looker-system-activity-scheduled-exports)
-   - [Step 7: Deploy LookML Model & Dashboards](#step-7-deploy-lookml-model--dashboards)
-   - [Step 8: Initial Backfill & Validation](#step-8-initial-backfill--validation)
-5. [How the Ingestion Pipeline Works](#-how-the-ingestion-pipeline-works)
-6. [Data Classification & Attribution Taxonomy](#-data-classification--attribution-taxonomy)
-7. [Dashboard Overview & Capabilities](#-dashboard-overview--capabilities)
-8. [Monitoring & Troubleshooting](#-monitoring--troubleshooting)
+This solution delivers 100% granular cost attribution, automated zero-compute data ingestion, and a complete 4-tab interactive **LookML Dashboard** (`looker_bigquery_cost_governance.dashboard.lookml`) that is source-controlled and deployed directly via LookML.
 
 ---
 
-## 🏛 Solution Architecture
+## Table of Contents
+1. [Solution Overview & LookML Dashboard](#solution-overview--lookml-dashboard)
+2. [Solution Architecture](#solution-architecture)
+3. [Repository Structure](#repository-structure)
+4. [Prerequisites & Required IAM Permissions](#prerequisites--required-iam-permissions)
+5. [Configuration Placeholders Reference](#configuration-placeholders-reference)
+6. [PDT Build Timing & Modification Guide](#pdt-build-timing--modification-guide)
+7. [Step-by-Step Deployment Guide](#step-by-step-deployment-guide)
+   - [Step 1: Clone the GitHub Repository](#step-1-clone-the-github-repository)
+   - [Step 2: Environment Configuration](#step-2-environment-configuration)
+   - [Step 3: Enable Google Cloud APIs](#step-3-enable-google-cloud-apis)
+   - [Step 4: Create GCS Storage Bucket & Grant IAM Roles](#step-4-create-gcs-storage-bucket--grant-iam-roles)
+   - [Step 5: Initialize BigQuery Tables & DDL](#step-5-initialize-bigquery-tables--ddl)
+   - [Step 6: Deploy the Cloud Run Ingestion Function](#step-6-deploy-the-cloud-run-ingestion-function)
+   - [Step 7: Configure Looker System Activity Scheduled Exports](#step-7-configure-looker-system-activity-scheduled-exports)
+   - [Step 8: Create the LookML Project & Deploy Code](#step-8-create-the-lookml-project--deploy-code)
+   - [Step 9: Initial Backfill & Validation](#step-9-initial-backfill--validation)
+8. [Data Classification & Attribution Taxonomy](#data-classification--attribution-taxonomy)
+9. [Dashboard Tabs & Capabilities](#dashboard-tabs--capabilities)
+10. [Monitoring & Troubleshooting](#monitoring--troubleshooting)
+
+---
+
+## Solution Overview & LookML Dashboard
+
+Unlike user-defined dashboards (UDDs) that reside in personal or shared folders, this solution deploys a governed **LookML Dashboard** defined in version-controlled `.dashboard.lookml` files.
+
+### Key Benefits of a LookML Dashboard
+* **Source-Controlled & Versioned**: The entire dashboard definition, filters, layouts, and visualization parameters live in Git alongside your data models.
+* **Instant Multi-Environment Deployment**: Automatically deployable across development, staging, and production Looker instances without manual UI rebuilding or broken dashboard references.
+* **Governed Performance**: Tightly coupled with LookML Datagroups and Persistent Derived Tables (PDTs), ensuring sub-second tile load times.
+
+---
+
+## Solution Architecture
 
 ```mermaid
 flowchart TD
     subgraph Looker ["Looker BI Platform"]
         SA["System Activity History & Users"]
-        Sched["Daily 6:00 AM ET CSV Export Schedule"]
-        UI["Cost Governance Dashboard"]
+        Sched["Daily 5:30 AM ET CSV Export Schedule"]
+        UI["LookML Governance Dashboard<br/>(looker_bigquery_cost_governance)"]
         SA --> Sched
     end
 
     subgraph Storage ["Google Cloud Storage"]
-        GCS["gs://BUCKET_NAME/system_activity_reports/<br/>• users.csv<br/>• users_groups_roles.csv<br/>• history.csv"]
+        GCS["gs://BUCKET_NAME/system_activity_reports/<br/>- users.csv<br/>- users_groups_roles.csv<br/>- history.csv"]
     end
 
     subgraph EventarcSub ["Eventarc & Cloud Run Functions"]
@@ -57,7 +71,7 @@ flowchart TD
             T_Hist["history (Partitioned & Clustered)"]
         end
         
-        PDT["Persistent Derived Table (PDT)<br/>bigquery_looker_jobs<br/>(90-Day Partitioned, Daily 6 AM Refresh)"]
+        PDT["Persistent Derived Table (PDT)<br/>bigquery_looker_jobs<br/>(180-Day Partitioned, Daily 6 AM Refresh)"]
     end
 
     Sched -->|Deliver CSVs| GCS
@@ -74,14 +88,14 @@ flowchart TD
     PDT -->|Powers| UI
 ```
 
-### Why this architecture?
-* **Zero ETL Compute Ingestion Cost**: Ingestion uses native BigQuery `LoadJob` operations from Google Cloud Storage, which do not consume BigQuery query slots or incur analysis billing.
-* **Idempotent Updates**: History ingestion uses a partition-pruned `MERGE` bounded to the last 30 days, guaranteeing that duplicate or retried file uploads do not duplicate records.
-* **Symmetric Aggregation Protected**: LookML measures are designed to prevent fanout when joining multi-department and multi-role user memberships.
+### Why This Architecture?
+* **Zero ETL Compute Ingestion Cost**: Ingestion uses native BigQuery `LoadJob` operations from Cloud Storage, which do not consume query slots or incur analysis billing.
+* **Idempotent Updates**: History ingestion uses a partition-pruned `MERGE` bounded to the last 30 days, preventing duplicate records if files are re-sent.
+* **Symmetric Aggregation Protected**: LookML measures prevent fanout when joining multi-department and multi-role user memberships.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 looker-bq-cost-governance/
@@ -99,18 +113,20 @@ looker-bq-cost-governance/
 └── lookml/
     ├── bq_cost_attribution.model.lkml  # Model file defining datagroups, caching, and joins
     ├── views/
-    │   ├── bigquery_looker_jobs.view.lkml           # Primary derived table & attribution logic
-    │   └── looker_system_activity_enrichment.view.lkml # Auxiliary enrichment view
+    │   ├── bigquery_looker_jobs.view.lkml              # Primary derived table & attribution logic
+    │   ├── looker_history.view.lkml                    # Looker System Activity history view
+    │   ├── looker_users.view.lkml                      # Looker users dimension view
+    │   └── looker_users_groups_roles.view.lkml         # User groups and roles bridge view
     └── dashboards/
-        └── looker_bigquery_cost_governance.dashboard.lookml # 4-tab governance dashboard
+        └── looker_bigquery_cost_governance.dashboard.lookml # 4-tab LookML governance dashboard
 ```
 
 ---
 
-## 🔐 Prerequisites & Required IAM Permissions
+## Prerequisites & Required IAM Permissions
 
 ### 1. Deployer IAM Roles
-The user or CI/CD identity executing deployment commands must possess the following roles on the Google Cloud project:
+The identity executing deployment commands must possess the following roles on the Google Cloud project:
 
 | IAM Role | Role Name | Purpose |
 | :--- | :--- | :--- |
@@ -132,23 +148,85 @@ The Cloud Run Function uses the default Compute Engine service account (`<PROJEC
 
 ### 3. Looker Permissions
 * **Admin** or **Developer** role in Looker.
-* Access to Looker **System Activity** explores (`History`, `User`, `User Group`).
+* Access to Looker **System Activity** explores (`History`, `User`).
 * A configured Looker database connection to BigQuery with permissions to read `INFORMATION_SCHEMA.JOBS_BY_PROJECT` and create PDT scratch tables.
 
 ---
 
-## 🚀 Step-by-Step Deployment Guide
+## Configuration Placeholders Reference
 
-### Step 1: Environment Configuration
+Before deploying, update the following placeholder values across the code files to match your environment:
 
-Open your local terminal in the repository root directory (`looker-bq-cost-governance/`) and set your target environment variables:
+| Placeholder Variable | Example / Default Value | Files to Update | Line / Description |
+| :--- | :--- | :--- | :--- |
+| `PROJECT_ID` | `looker-core-4cjg` | `lookml/views/bigquery_looker_jobs.view.lkml`<br>`lookml/views/looker_history.view.lkml`<br>`lookml/views/looker_users.view.lkml`<br>`lookml/views/looker_users_groups_roles.view.lkml`<br>`pipeline/deploy.sh` | Replace project ID prefix in `INFORMATION_SCHEMA.JOBS_BY_PROJECT` and table references. |
+| `REGION` / Region Prefix | `region-us` | `lookml/views/bigquery_looker_jobs.view.lkml` | Set to your BigQuery dataset region qualifier (e.g., `region-us`, `region-eu`, `region-us-central1`). |
+| `DATASET_ID` | `looker_bq_costs` | `lookml/views/*.view.lkml`<br>`pipeline/deploy.sh`<br>`bigquery/ddl/*.sql` | Target BigQuery dataset storing the ingested System Activity tables. |
+| `CONNECTION_NAME` | `sample_retail_data` | `lookml/bq_cost_attribution.model.lkml` | Update `connection: "<your_bigquery_connection>"` to match your Looker connection name. |
+| `BUCKET_NAME` | `looker-core-4cjg-bucket` | `pipeline/deploy.sh`<br>Looker Schedule UI | Target GCS bucket for scheduled System Activity exports. |
+
+---
+
+## PDT Build Timing & Modification Guide
+
+### Default Schedule
+The Persistent Derived Table (`bigquery_looker_jobs`) is configured to rebuild **once every 24 hours at 6:00 AM ET (America/New_York)**. 
+
+### Why 6:00 AM ET?
+Looker System Activity exports are scheduled to deliver CSVs to GCS at **5:30 AM ET**. The Cloud Function ingests these files into BigQuery within seconds. The 6:00 AM ET datagroup trigger ensures that the PDT rebuilds against the freshest Looker history and user metadata every morning before business hours.
+
+### Where to Modify the Schedule in Code
+
+1. **Model Datagroup Definition** (`lookml/bq_cost_attribution.model.lkml`):
+   ```lookml
+   datagroup: bq_cost_attribution_daily_6am {
+     max_cache_age: "24 hours"
+     sql_trigger: SELECT CAST(TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 6 HOUR), DAY, 'America/New_York') AS STRING) ;;
+     description: "Triggers PDT rebuild every 24 hours at 6:00 AM ET (America/New_York)"
+   }
+   ```
+   * **To change the time**: Adjust the `INTERVAL <N> HOUR` offset or replace the timezone string (e.g., `'UTC'`, `'America/Los_Angeles'`).
+   * **To use an interval-based trigger**: Replace `sql_trigger` with `interval_trigger: "12 hours"` or `"4 hours"`.
+
+2. **PDT Binding** (`lookml/views/bigquery_looker_jobs.view.lkml`):
+   ```lookml
+   view: bigquery_looker_jobs {
+     derived_table: {
+       datagroup_trigger: bq_cost_attribution_daily_6am
+       partition_keys: ["creation_date"]
+       cluster_keys: ["history_slug", "job_id", "looker_user_name"]
+       sql: ...
+   ```
+   * If you rename the datagroup in the model file, update `datagroup_trigger:` here to match the new name.
+
+---
+
+## Step-by-Step Deployment Guide
+
+### Step 1: Clone the GitHub Repository
+
+Open your local terminal and clone the repository to your local development machine:
+
+```bash
+# Clone the repository
+git clone https://github.com/Ace-Kinkaid/looker-bigquery-costs-public.git looker-bq-cost-governance
+
+# Navigate into the project directory
+cd looker-bq-cost-governance
+```
+
+---
+
+### Step 2: Environment Configuration
+
+Set your deployment environment variables in your terminal session:
 
 ```bash
 # Set your GCP Project ID, Region, and GCS Bucket Name
-export PROJECT_ID="YOUR_PROJECT_ID"
+export PROJECT_ID="your-gcp-project-id"
 export REGION="us-central1"
 export TRIGGER_LOCATION="us"
-export BUCKET_NAME="YOUR_BUCKET_NAME"
+export BUCKET_NAME="your-gcs-bucket-name"
 export DATASET_ID="looker_bq_costs"
 
 # Configure gcloud CLI context
@@ -157,9 +235,9 @@ gcloud config set project "${PROJECT_ID}"
 
 ---
 
-### Step 2: Enable Google Cloud APIs
+### Step 3: Enable Google Cloud APIs
 
-Enable all required Google Cloud APIs:
+Enable the necessary APIs:
 
 ```bash
 gcloud services enable \
@@ -174,9 +252,9 @@ gcloud services enable \
 
 ---
 
-### Step 3: Create GCS Storage Bucket & Grant IAM Roles
+### Step 4: Create GCS Storage Bucket & Grant IAM Roles
 
-1. **Create the Cloud Storage Bucket** (if it does not already exist):
+1. **Create the Cloud Storage Bucket** (if not already existing):
    ```bash
    gcloud storage buckets create "gs://${BUCKET_NAME}" \
      --project="${PROJECT_ID}" \
@@ -185,7 +263,6 @@ gcloud services enable \
    ```
 
 2. **Grant GCS Pub/Sub Publisher Role**:
-   Eventarc requires the GCS service agent to have permission to publish pubsub events:
    ```bash
    PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format="value(projectNumber)")
    GCS_SERVICE_ACCOUNT="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
@@ -197,9 +274,9 @@ gcloud services enable \
 
 ---
 
-### Step 4: Initialize BigQuery Tables & DDL
+### Step 5: Initialize BigQuery Tables & DDL
 
-Create the target BigQuery dataset and tables. You can run these via `bq query` or execute them in the [Google Cloud BigQuery Console](https://console.cloud.google.com/bigquery):
+Create the target BigQuery dataset and audit tables:
 
 1. **Create Dataset**:
    ```bash
@@ -220,26 +297,10 @@ Create the target BigQuery dataset and tables. You can run these via `bq query` 
 
 ---
 
-### Step 5: Deploy the Cloud Run Ingestion Function
+### Step 6: Deploy the Cloud Run Ingestion Function
 
-The ingestion function is a Gen 2 Cloud Run Function in Python 3.11.
+The ingestion function is a Gen 2 Cloud Run Function (Python 3.11).
 
-#### What the Cloud Function Does:
-1. **Listens to GCS**: Triggered automatically via Eventarc when any file is uploaded to `gs://${BUCKET_NAME}/system_activity_reports/`.
-2. **Filters & Routes**:
-   * `*users.csv*`: Executes an atomic `WRITE_TRUNCATE` load job into `looker_bq_costs.users`.
-   * `*users_groups_roles.csv*`: Executes an atomic `WRITE_TRUNCATE` load job into `looker_bq_costs.users_groups_roles`.
-   * `*history.csv*`: Loads records into staging (`history_staging`), then executes an idempotent partition-pruned `MERGE` into `looker_bq_costs.history` matching on `history_id`.
-3. **$0 Slot Compute**: Uses native BigQuery load jobs (free of charge).
-
-#### Deploy via Script:
-From the repository root:
-```bash
-chmod +x pipeline/deploy.sh
-./pipeline/deploy.sh
-```
-
-#### Or Deploy Directly with `gcloud`:
 ```bash
 gcloud functions deploy looker-system-activity-loader \
   --gen2 \
@@ -258,9 +319,9 @@ gcloud functions deploy looker-system-activity-loader \
 
 ---
 
-### Step 6: Configure Looker System Activity Scheduled Exports
+### Step 7: Configure Looker System Activity Scheduled Exports
 
-In your Looker web interface, set up daily automated exports from Looker's System Activity explores to GCS.
+In your Looker web interface, set up daily automated exports from System Activity explores to GCS.
 
 #### Report 1: `users.csv`
 1. Navigate to **Explore > System Activity > User**.
@@ -268,10 +329,10 @@ In your Looker web interface, set up daily automated exports from Looker's Syste
    * `User ID` (`user.id`)
    * `Name` (`user.name`)
    * `Email` (`user.email`)
-3. Click the gear icon $\rightarrow$ **Save and Schedule**.
+3. Click the gear icon -> **Save and Schedule**.
 4. **Destination**: Google Cloud Storage (`gs://<BUCKET_NAME>/system_activity_reports/users.csv`).
 5. **Format**: CSV (no formatting).
-6. **Trigger**: Daily at `5:30 AM ET` (or 30 mins before PDT rebuild).
+6. **Trigger**: Daily at `5:30 AM ET`.
 
 #### Report 2: `users_groups_roles.csv`
 1. Navigate to **Explore > System Activity > User**.
@@ -304,24 +365,52 @@ In your Looker web interface, set up daily automated exports from Looker's Syste
 3. Add filter: `History Created Date` = `in the past 3 days` (provides overlap for resilience).
 4. Save and Schedule to `gs://<BUCKET_NAME>/system_activity_reports/history.csv` at `5:30 AM ET`.
 
+---
+
+### Step 8: Create the LookML Project & Deploy Code
+
+Follow these steps to create and configure the LookML project in Looker:
+
+1. **Enable Development Mode**:
+   * In Looker, toggle the **Development Mode** switch on in the bottom-left navigation bar.
+
+2. **Create New LookML Project**:
+   * Navigate to **Develop** > **Projects**.
+   * Click **New LookML Project**.
+   * **Project Name**: Enter `bq_cost_attribution`.
+   * **Starting Point**: Select **Blank Project** (or configure Git connection to your cloned repo).
+   * Click **Create Project**.
+
+3. **Create Folder Structure & Add Files**:
+   * Create two folders: `/views/` and `/dashboards/`.
+   * Copy the files from this repository into your project:
+     * Root: `bq_cost_attribution.model.lkml`
+     * `/views/`:
+       * `bigquery_looker_jobs.view.lkml`
+       * `looker_history.view.lkml`
+       * `looker_users.view.lkml`
+       * `looker_users_groups_roles.view.lkml`
+     * `/dashboards/`:
+       * `looker_bigquery_cost_governance.dashboard.lookml`
+
+4. **Update Connection & Placeholders**:
+   * Open `bq_cost_attribution.model.lkml` and update `connection: "your_connection_name"` to match your BigQuery connection name.
+   * Open `views/bigquery_looker_jobs.view.lkml` and verify that the Project ID and Region in line 115 match your Google Cloud project (e.g. `` `your-project-id`.`region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT ``).
+
+5. **Validate & Deploy to Production**:
+   * Click **Validate LookML** in the top-right corner (verify 0 errors).
+   * Click **Commit Changes & Push**.
+   * Click **Deploy to Production**.
+
+6. **Open the LookML Dashboard**:
+   * Navigate to **Browse** > **LookML Dashboards**.
+   * Click **Looker & BigQuery Cost Governance** (or navigate directly to `/dashboards/bq_cost_attribution::looker_bigquery_cost_governance`).
 
 ---
 
-### Step 7: Deploy LookML Model & Dashboards
+### Step 9: Initial Backfill & Validation
 
-1. Copy the files in `lookml/` into your Looker project (e.g. `bq_cost_attribution`):
-   * `lookml/bq_cost_attribution.model.lkml`
-   * `lookml/views/bigquery_looker_jobs.view.lkml`
-   * `lookml/views/looker_system_activity_enrichment.view.lkml`
-   * `lookml/dashboards/looker_bigquery_cost_governance.dashboard.lookml`
-2. Verify that the `connection:` parameter in `bq_cost_attribution.model.lkml` matches your BigQuery connection name.
-3. Validate LookML and deploy to Production.
-
----
-
-### Step 8: Initial Backfill & Validation
-
-To test the end-to-end pipeline immediately without waiting for the morning schedule:
+To test the end-to-end pipeline immediately without waiting for the scheduled delivery:
 
 1. Export manual CSVs from Looker or upload sample CSVs to `gs://${BUCKET_NAME}/system_activity_reports/`.
 2. Check Cloud Function execution logs:
@@ -333,13 +422,13 @@ To test the end-to-end pipeline immediately without waiting for the morning sche
    SELECT count(*) FROM `looker_bq_costs.history`;
    SELECT count(*) FROM `looker_bq_costs.users`;
    ```
-4. In Looker, navigate to the **Looker & BigQuery Cost Governance** dashboard and verify all tiles populate with live data.
+4. In Looker, refresh the **Looker & BigQuery Cost Governance** dashboard and verify all tiles populate with live data.
 
 ---
 
-## 🔍 Data Classification & Attribution Taxonomy
+## Data Classification & Attribution Taxonomy
 
-The Persistent Derived Table (`bigquery_looker_jobs`) implements a robust 5-tier classification hierarchy:
+The Persistent Derived Table (`bigquery_looker_jobs`) implements a 5-tier classification hierarchy:
 
 ### 1. `query_source`
 Identifies the exact mechanism triggering the BigQuery execution:
@@ -352,7 +441,7 @@ Identifies the exact mechanism triggering the BigQuery execution:
 * `alert`: Automated conditional alert threshold evaluations.
 * `sql_runner`: Ad-hoc SQL queries executed in Looker SQL Runner.
 * `api`: Programmatic queries executed via Looker SDK or REST API.
-* `direct_bigquery`: Queries executed directly in BigQuery without Looker UI context comments (including connection heartbeats and external ETL).
+* `direct_bigquery`: Queries executed directly in BigQuery outside Looker (including connection heartbeats and external pipelines).
 
 ### 2. `query_origin_type`
 High-level classification for executive reporting:
@@ -371,8 +460,9 @@ High-level classification for executive reporting:
 2. **System Activity Match**: Directly pulls the model/explore from `looker_bq_costs.history` matched by `history_slug`.
 3. **Context Comment / Label JSON**: Extracts `explore` and `model` tokens injected into the query headers.
 4. **PDT Regex**: Extracts model and view names from PDT build statements (`-- Building persistent derived table <model>::<view>`).
-5. **Ad-hoc Explore Fallback**: Distinguishes genuine user ad-hoc sessions (`Looker Ad-hoc Query` / `Looker Ad-hoc Explore`) from background platform engine connection checks (`Connection Heartbeat & Metadata` / `Looker Platform System`).
-6. **External Pipeline Fallback**: Identifies external service accounts (`Pipeline: <service_account_prefix>`).
+5. **Ad-hoc Explore Fallback**: Distinguishes user ad-hoc sessions (`Looker Ad-hoc Query` / `Looker Ad-hoc Explore`) from platform engine connection checks (`Connection Heartbeat & Metadata`).
+6. **External Pipeline Fallback**: Identifies external service accounts (`External Pipeline: <service_account_prefix>`).
+7. **Direct Console Fallback**: Formats direct console queries as `Direct BigQuery: <user_email>`.
 
 ### 4. `cost_center` Allocation
 * `Conversational Analytics`: Natural language queries driven by Conversational Analytics agents and Gemini in Looker.
@@ -380,7 +470,6 @@ High-level classification for executive reporting:
 * `Business Teams`: Queries initiated by named business users (dashboards, looks, explores).
 * `Shared / Looker System`: System scheduled queries and platform maintenance tasks.
 * `Non-Looker / Direct BigQuery`: Queries run outside Looker.
-
 
 ### 5. BigQuery Billing Logic
 * **10 MB Minimum**: BigQuery enforces a minimum 10 MB charge for queries scanning between 1 byte and 10 MB. `effective_bytes_billed` applies this minimum to non-cached queries.
@@ -390,9 +479,9 @@ High-level classification for executive reporting:
 
 ---
 
-## 📊 Dashboard Overview & Capabilities
+## Dashboard Tabs & Capabilities
 
-The dashboard provides 4 specialized analytics tabs:
+The LookML dashboard provides 4 specialized analytics tabs:
 
 1. **Executive Overview & Spend Velocity**:
    * High-level KPI cards (Total Spend, Net Cost, Total Queries, Active Users, Cache Hit Rate).
@@ -413,19 +502,19 @@ The dashboard provides 4 specialized analytics tabs:
 
 ---
 
-## 🛠 Monitoring & Troubleshooting
+## Monitoring & Troubleshooting
 
 ### Viewing Function Logs
 ```bash
 gcloud beta run services logs tail looker-system-activity-loader \
-  --project="YOUR_PROJECT_ID" \
+  --project="your-gcp-project-id" \
   --region="us-central1"
 ```
 
 ### Manual Trigger / Test Ingestion
 Upload a test CSV directly to GCS:
 ```bash
-gcloud storage cp test_history.csv gs://YOUR_BUCKET_NAME/system_activity_reports/history.csv
+gcloud storage cp test_history.csv gs://your-gcs-bucket-name/system_activity_reports/history.csv
 ```
 
 ### Inspecting BigQuery Staging & Tables
